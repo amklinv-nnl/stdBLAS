@@ -1,5 +1,7 @@
 # Reference Implementation for BLAS in the C++ standard
 
+[![codecov](https://codecov.io/gh/amklinv-nnl/stdBLAS/branch/main/graph/badge.svg?token=2Z88W5LH2K)](https://codecov.io/gh/amklinv-nnl/stdBLAS)
+
 ## Requirements
 
   - CMake >= 3.12 (requirement of mdarray)
