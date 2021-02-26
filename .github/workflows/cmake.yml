@@ -26,7 +26,7 @@ jobs:
       with:
         repository: kokkos/mdspan
       
-      - name: Build mdspan
+    - name: Build mdspan
       shell: bash
       working-directory: ${{github.workspace}}/build-mdspan
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
