@@ -58,7 +58,6 @@ jobs:
     - name: Check Out (stdBLAS)
       uses: actions/checkout@v2
       with:
-        repository: kokkos/stdBLAS
         path: ${{github.workspace}}/stdBLAS
       
     - name: Configure CMake (stdBLAS)
