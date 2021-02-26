@@ -61,7 +61,7 @@ jobs:
     - name: Configure CMake (stdBLAS)
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE/stdBLAS -DMDSpan_DIR=$GITHUB_WORKSPACE/build-mdspan -DMDArray_DIR=$GITHUB_WORKSPACE/build-mdarray -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: cmake $GITHUB_WORKSPACE/stdBLAS -DMDSpan_DIR=$GITHUB_WORKSPACE/build-mdspan -DMDArray_DIR=$GITHUB_WORKSPACE/build-mdarray -DLINALG_ENABLE_TESTS=On -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build (stdBLAS)
       working-directory: ${{github.workspace}}/build
