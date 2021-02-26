@@ -15,26 +15,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Create Build Environment
+    - name: Create Build Environment (mdspan)
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
-      run: cmake -E make_directory ${{github.workspace}}/build
+      run: cmake -E make_directory ${{github.workspace}}/build-mdspan
       
-    - name: Check Out mdspan
+    - name: Check Out (mdspan)
       uses: actions/checkout@v2
       with:
         repository: kokkos/mdspan
         path: ${{github.workspace}}/mdspan
       
-    - name: Build mdspan
+    - name: Configure CMake (mdspan)
       shell: bash
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/build-mdspan
       run: cmake $GITHUB_WORKSPACE/mdspan -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-    
-    - name: Check Out mdarray
+      
+    - name: Create Build Environment (mdarray)
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{github.workspace}}/build-mdarray
+      
+    - name: Check Out (mdarray)
       uses: actions/checkout@v2
       with:
         repository: kokkos/mdarray
+        path: ${{github.workspace}}/mdarray
+      
+    - name: Configure CMake (mdarray)
+      shell: bash
+      working-directory: ${{github.workspace}}/build-mdarray
+      run: cmake $GITHUB_WORKSPACE/mdarray -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
