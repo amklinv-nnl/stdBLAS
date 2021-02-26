@@ -45,7 +45,7 @@ jobs:
     - name: Configure CMake (mdarray)
       shell: bash
       working-directory: ${{github.workspace}}/build-mdarray
-      run: cmake $GITHUB_WORKSPACE/mdarray -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: cmake $GITHUB_WORKSPACE/mdarray -DMDSpan_DIR=$GITHUB_WORKSPACE/build-mdspan -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
