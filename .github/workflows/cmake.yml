@@ -18,7 +18,7 @@ jobs:
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
-      run: cmake -E make_directory ${{github.workspace}}/build ${{github.workspace}}/build-mdspan
+      run: cmake -E make_directory ${{github.workspace}}/build
       
     - name: Check Out mdspan
       uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
       
     - name: Build mdspan
       shell: bash
-      working-directory: ${{github.workspace}}/build-mdspan
+      working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
     
     - name: Check Out mdarray
