@@ -79,7 +79,5 @@ jobs:
       run: ctest -C $BUILD_TYPE
 
     - name: codecov
-      working-directory: ${{github.workspace}}/build
-      shell: bash
-      run: curl -s https://codecov.io/bash # Upload to Codecov
+      uses: codecov/codecov-action@v1
     
