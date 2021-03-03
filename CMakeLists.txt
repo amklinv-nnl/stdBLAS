@@ -22,6 +22,8 @@ set_property(CACHE LINALG_CXX_STANDARD PROPERTY STRINGS DETECT 11 14 17 20)
 
 option(LINALG_ENABLE_CONCEPTS "Try to enable concepts support by giving extra flags." On)
 
+option(CODE_COVERAGE "Enable coverage reporting" OFF)
+
 ################################################################################
 
 # Decide on the standard to use
@@ -87,6 +89,14 @@ if(LINALG_ENABLE_CONCEPTS)
     # but if it doesn't, they just won't be used, which is fine
   endif()
 endif()
+
+################################################################################
+
+if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  message(STATUS "Adding code coverage flags")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g --coverage")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+endif(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
 ################################################################################
 
