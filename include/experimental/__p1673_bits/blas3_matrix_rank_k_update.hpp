@@ -192,6 +192,8 @@ void symmetric_matrix_rank_k_update(
     std::is_same_v<Triangle, lower_triangle_t>;
   using size_type = std::common_type_t<SizeType_A, SizeType_C>;
 
+
+  /*
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
     const size_type i_upper = lower_tri ? C.extent(0) : j+1;
@@ -202,6 +204,41 @@ void symmetric_matrix_rank_k_update(
       }
     }
   }
+  */
+
+  size_type r = A.extent(0);
+  size_type c = A.extent(1);
+  auto cols = std::ranges::iota_view{size_type(0), c};
+
+  //for (size_type row_c = 0; row_c < nrows_C; ++row_c) {
+  auto rows = std::ranges::iota_view{size_type(0), r};
+  auto inner_dim = std::ranges::iota_view{size_type(0), c};
+  std::for_each(std::execution::par,cols.begin(), cols.end(), [=](size_type col) {
+  
+    //for (size_type col_c = 0; col_c < ncols_C; ++col_c) {
+    std::for_each(std::execution::par,rows.begin(), rows.end(), [=](size_type row) {
+      if (lower_tri && col > row){
+        return;
+      }
+      if (!lower_tri && row > col){
+        return;
+      }   
+
+#if defined(LINALG_FIX_RANK_UPDATES)
+      C(row, col) = ElementType_C{};
+#endif
+      // dot product of row and vector
+      C(row,col) = std::transform_reduce(
+        std::execution::par,           // Parallel execution policy
+        inner_dim.begin(), inner_dim.end(),          // Range of the first vector
+        C(row, col),                              // Initial value for accumulation
+        std::plus <> (), 
+        [=](auto inner_index){
+          return alpha * A(row, inner_index) * A(col, inner_index);
+        }
+      );
+    });
+  });
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
@@ -299,6 +336,7 @@ void symmetric_matrix_rank_k_update(
     std::is_same_v<Triangle, lower_triangle_t>;
   using size_type = std::common_type_t<SizeType_A, SizeType_C>;
 
+  /*
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
     const size_type i_upper = lower_tri ? C.extent(0) : j+1;
@@ -309,6 +347,37 @@ void symmetric_matrix_rank_k_update(
       }
     }
   }
+  */
+
+  size_type r = A.extent(0);
+  size_type c = A.extent(1);
+  auto cols = std::ranges::iota_view{size_type(0), c};
+  auto rows = std::ranges::iota_view{size_type(0), r};
+  auto inner_dim = std::ranges::iota_view{size_type(0), c};
+  std::for_each(std::execution::par,cols.begin(), cols.end(), [=](size_type col) {
+    std::for_each(std::execution::par,rows.begin(), rows.end(), [=](size_type row) {
+      if (lower_tri && col > row){
+        return;
+      }
+      if (!lower_tri && row > col){
+        return;
+      }   
+
+#if defined(LINALG_FIX_RANK_UPDATES)
+      C(row, col) = ElementType_C{};
+#endif
+      // dot product of row and vector
+      C(row,col) = std::transform_reduce(
+        std::execution::par,           // Parallel execution policy
+        inner_dim.begin(), inner_dim.end(),          // Range of the first vector
+        C(row, col),                              // Initial value for accumulation
+        std::plus <> (), 
+        [=](auto inner_index){
+          return A(row, inner_index) * A(col, inner_index);
+        }
+      );
+    });
+  });
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
@@ -407,6 +476,7 @@ void symmetric_matrix_rank_k_update(
     std::is_same_v<Triangle, lower_triangle_t>;
   using size_type = std::common_type_t<SizeType_A, SizeType_C>;
 
+  /*
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
     const size_type i_upper = lower_tri ? C.extent(0) : j+1;
@@ -417,6 +487,37 @@ void symmetric_matrix_rank_k_update(
       }
     }
   }
+  */
+
+  size_type r = A.extent(0);
+  size_type c = A.extent(1);
+  auto cols = std::ranges::iota_view{size_type(0), c};
+  auto rows = std::ranges::iota_view{size_type(0), r};
+  auto inner_dim = std::ranges::iota_view{size_type(0), c};
+  std::for_each(std::execution::par,cols.begin(), cols.end(), [=](size_type col) {
+    std::for_each(std::execution::par,rows.begin(), rows.end(), [=](size_type row) {
+      if (lower_tri && col > row){
+        return;
+      }
+      if (!lower_tri && row > col){
+        return;
+      }   
+
+#if defined(LINALG_FIX_RANK_UPDATES)
+      C(row, col) = ElementType_C{};
+#endif
+      // dot product of row and vector
+      C(row,col) = std::transform_reduce(
+        std::execution::par,           // Parallel execution policy
+        inner_dim.begin(), inner_dim.end(),          // Range of the first vector
+        C(row, col),                              // Initial value for accumulation
+        std::plus <> (), 
+        [=](auto inner_index){
+          return alpha * A(row, inner_index) * A(col, inner_index);
+        }
+      );
+    });
+  });
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
@@ -525,6 +626,7 @@ void symmetric_matrix_rank_k_update(
     std::is_same_v<Triangle, lower_triangle_t>;
   using size_type = std::common_type_t<SizeType_A, SizeType_C>;
 
+  /*
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
     const size_type i_upper = lower_tri ? C.extent(0) : j+1;
@@ -535,6 +637,37 @@ void symmetric_matrix_rank_k_update(
       }
     }
   }
+  */
+
+  size_type r = A.extent(0);
+  size_type c = A.extent(1);
+  auto cols = std::ranges::iota_view{size_type(0), c};
+  auto rows = std::ranges::iota_view{size_type(0), r};
+  auto inner_dim = std::ranges::iota_view{size_type(0), c};
+  std::for_each(std::execution::par,cols.begin(), cols.end(), [=](size_type col) {
+    std::for_each(std::execution::par,rows.begin(), rows.end(), [=](size_type row) {
+      if (lower_tri && col > row){
+        return;
+      }
+      if (!lower_tri && row > col){
+        return;
+      }   
+
+#if defined(LINALG_FIX_RANK_UPDATES)
+      C(row, col) = ElementType_C{};
+#endif
+      // dot product of row and vector
+      C(row,col) = std::transform_reduce(
+        std::execution::par,           // Parallel execution policy
+        inner_dim.begin(), inner_dim.end(),          // Range of the first vector
+        C(row, col),                              // Initial value for accumulation
+        std::plus <> (), 
+        [=](auto inner_index){
+          return A(row, inner_index) * A(col, inner_index);
+        }
+      );
+    });
+  });
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
