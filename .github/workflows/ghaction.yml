@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   osmatrix: 
     strategy:
+      # Don't cancel all other builds if one fails
+      fail-fast: false
       matrix:
         # A full list of runners can be found here: 
         # https://docs.github.com/en/actions/reference/runners/github-hosted-runners
