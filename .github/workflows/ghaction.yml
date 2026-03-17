@@ -1,16 +1,13 @@
-name: stdBLAS
+name: build/test
 
 on: [push, pull_request]
-
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: RelWithDebInfo
 
 jobs:
   osmatrix: 
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        build-type: [Debug, RelWithDebInfo]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -24,38 +21,28 @@ jobs:
       run: cmake -E make_directory mdspan-build stdblas-build
 
     - name: Configure mdspan
-      working-directory: mdspan-build
-      run: cmake -S ${{ github.workspace }}/mdspan-src -B ${{ github.workspace }}/mdspan-build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/mdspan-install
+      run: cmake -S mdspan-src -B mdspan-build -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DCMAKE_INSTALL_PREFIX=mdspan-install
 
     - name: Build mdspan
-      working-directory: mdspan-build
-      run: cmake --build ${{ github.workspace }}/mdspan-build -j 3
+      run: cmake --build mdspan-build -j 3
 
     - name: Install mdspan
-      working-directory: mdspan-build
-      run: cmake --install ${{ github.workspace }}/mdspan-build
+      run: cmake --install mdspan-build
 
-    - name: Check Out
+    - name: Check Out stdblas
       uses: actions/checkout@v4
       with:
         path: stdblas-src
   
     - name: Configure stdblas
-      shell: bash
-      working-directory: stdblas-build
-      run: cmake -S ${{ github.workspace }}/stdblas-src -B ${{ github.workspace }}/stdblas-build -Dmdspan_DIR=${{ github.workspace }}/mdspan-install/ -DLINALG_ENABLE_TESTS=On -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/stdblas-install
+      run: cmake -S stdblas-src -B stdblas-build -Dmdspan_DIR=mdspan-install -DLINALG_ENABLE_TESTS=On -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DCMAKE_INSTALL_PREFIX=stdblas-install
 
     - name: Build stdblas
-      working-directory: stdblas-build
-      shell: bash
-      run: cmake --build ${{ github.workspace }}/stdblas-build -j 3
+      run: cmake --build stdblas-build -j 3
 
     - name: Test stdblas
       working-directory: stdblas-build
-      shell: bash
       run: ctest --output-on-failure
         
     - name: Install stdblas
-      working-directory: stdblas-build
-      shell: bash
-      run: cmake --install ${{ github.workspace }}/stdblas-build
+      run: cmake --install stdblas-build
