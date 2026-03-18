@@ -143,7 +143,7 @@ public:
     if constexpr (std::is_unsigned_v<value_type>) {
       return value_type(static_cast<const this_type&>(x));
     } else {
-      return abs(value_type(static_cast<const this_type&>(x)));
+      return std::abs(value_type(static_cast<const this_type&>(x)));
     }
   }
 
