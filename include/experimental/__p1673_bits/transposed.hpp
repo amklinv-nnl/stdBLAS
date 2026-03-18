@@ -105,9 +105,14 @@ public:
       return nested_mapping_.required_span_size();
     }
 
-    template<class IndexType0, class IndexType1>
-      requires(std::is_convertible_v<IndexType0, index_type> &&
-               std::is_convertible_v<IndexType1, index_type>)
+    MDSPAN_TEMPLATE_REQUIRES(
+      class IndexType0,
+      class IndexType1,
+      /* requires */ (
+        std::is_convertible_v<IndexType0, index_type> &&
+        std::is_convertible_v<IndexType1, index_type>
+      )
+    )
     index_type operator() (IndexType0 i, IndexType1 j) const
     {
       return nested_mapping_(j, i);
