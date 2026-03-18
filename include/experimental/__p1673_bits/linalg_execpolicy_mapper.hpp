@@ -106,7 +106,7 @@ namespace impl {
 
 // std::remove_cvref_t is a C++20 feature.
 #ifdef __cpp_lib_remove_cvref
-using ::std::remove_cvref_t;
+using std::remove_cvref_t;
 #else
 template<class T>
 using remove_cvref_t = std::remove_const_t<std::remove_reference_t<T>>;
