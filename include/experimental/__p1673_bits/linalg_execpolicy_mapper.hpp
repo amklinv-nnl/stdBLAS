@@ -105,12 +105,11 @@ auto execpolicy_mapper(T) { return impl::inline_exec_t(); }
 namespace impl {
 
 // std::remove_cvref_t is a C++20 feature.
-template<class T>
-using remove_cvref_t =
 #ifdef __cpp_lib_remove_cvref
-  std::remove_cvref_t<T>;
+using ::std::remove_cvref_t;
 #else
-  std::remove_const_t<std::remove_reference_t<decltype(policy)>>;
+template<class T>
+using remove_cvref_t = std::remove_const_t<std::remove_reference_t<T>>;
 #endif
 
 // This function is not to be specialized; that's why
