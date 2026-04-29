@@ -224,14 +224,11 @@ void symmetric_matrix_rank_k_update(
         return;
       }   
 
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row, col) = ElementType_C{};
-#endif
       // dot product of row and vector
       C(row,col) = std::transform_reduce(
         std::execution::par,           // Parallel execution policy
         inner_dim.begin(), inner_dim.end(),          // Range of the first vector
-        C(row, col),                              // Initial value for accumulation
+        ElementType_C{},                              // Initial value for accumulation
         std::plus <> (), 
         [=](auto inner_index){
           return alpha * A(row, inner_index) * A(col, inner_index);
@@ -363,14 +360,11 @@ void symmetric_matrix_rank_k_update(
         return;
       }   
 
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row, col) = ElementType_C{};
-#endif
       // dot product of row and vector
       C(row,col) = std::transform_reduce(
         std::execution::par,           // Parallel execution policy
         inner_dim.begin(), inner_dim.end(),          // Range of the first vector
-        C(row, col),                              // Initial value for accumulation
+        ElementType_C{},                              // Initial value for accumulation
         std::plus <> (), 
         [=](auto inner_index){
           return A(row, inner_index) * A(col, inner_index);
@@ -503,14 +497,11 @@ void symmetric_matrix_rank_k_update(
         return;
       }   
 
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row, col) = ElementType_C{};
-#endif
       // dot product of row and vector
       C(row,col) = std::transform_reduce(
         std::execution::par,           // Parallel execution policy
         inner_dim.begin(), inner_dim.end(),          // Range of the first vector
-        C(row, col),                              // Initial value for accumulation
+        ElementType_C{},                              // Initial value for accumulation
         std::plus <> (), 
         [=](auto inner_index){
           return alpha * A(row, inner_index) * A(col, inner_index);
@@ -653,14 +644,11 @@ void symmetric_matrix_rank_k_update(
         return;
       }   
 
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row, col) = ElementType_C{};
-#endif
       // dot product of row and vector
       C(row,col) = std::transform_reduce(
         std::execution::par,           // Parallel execution policy
         inner_dim.begin(), inner_dim.end(),          // Range of the first vector
-        C(row, col),                              // Initial value for accumulation
+        ElementType_C{},                              // Initial value for accumulation
         std::plus <> (), 
         [=](auto inner_index){
           return A(row, inner_index) * A(col, inner_index);
@@ -782,42 +770,6 @@ void hermitian_matrix_rank_k_update(
       }
     }
   }
-
-  /*
-  size_type nrows_C = C.extent(0);
-  size_type ncols_C = C.extent(1);
-  size_type ncols_A = A.extent(1);
-  auto cols_a = std::ranges::iota_view{size_type(0), ncols_A};
-  auto rows_c = std::ranges::iota_view{size_type(0), nrows_C};
-  auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-
-  std::for_each(std::execution::par,rows_c.begin(), rows_c.end(), [=](size_type row_c) {
-
-#if !defined(LINALG_FIX_RANK_UPDATES)
-    C(row_c,row_c) = impl::real_if_needed(C(row_c,row_c));
-#endif
-
-    auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-    std::for_each(std::execution::par,cols_c.begin(), cols_c.end(), [=](size_type col_c) {
-
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row_c,col_c) = ElementType_C{};
-#endif
-
-      // dot product of row and vector
-      C(row_c,col_c) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols_a.begin(), cols_a.end(),          // Range of the first vector
-        ElementType_C{},                              // Initial value for accumulation
-        std::plus <> (), 
-        [=](auto col_a){
-          return A(row_c,col_a) * impl::conj_if_needed(B(col_c,col_a)) + B(row_c,col_a) * impl::conj_if_needed(A(col_c,col_a));
-        }
-      );
-    });
-  });
-  */
-  
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
@@ -926,44 +878,6 @@ void hermitian_matrix_rank_k_update(
       }
     }
   }
-
-
-  /*
-  size_type nrows_C = C.extent(0);
-  size_type ncols_C = C.extent(1);
-  size_type ncols_A = A.extent(1);
-  auto cols_a = std::ranges::iota_view{size_type(0), ncols_A};
-  auto rows_c = std::ranges::iota_view{size_type(0), nrows_C};
-  auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-
-  std::for_each(std::execution::par,rows_c.begin(), rows_c.end(), [=](size_type row_c) {
-
-#if !defined(LINALG_FIX_RANK_UPDATES)
-    C(row_c,row_c) = impl::real_if_needed(C(row_c,row_c));
-#endif
-
-    auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-    std::for_each(std::execution::par,cols_c.begin(), cols_c.end(), [=](size_type col_c) {
-
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row_c,col_c) = ElementType_C{};
-#endif
-
-      // dot product of row and vector
-      C(row_c,col_c) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols_a.begin(), cols_a.end(),          // Range of the first vector
-        ElementType_C{},                              // Initial value for accumulation
-        std::plus <> (), 
-        [=](auto col_a){
-          return A(row_c,col_a) * impl::conj_if_needed(B(col_c,col_a)) + B(row_c,col_a) * impl::conj_if_needed(A(col_c,col_a));
-        }
-      );
-    });
-  });
-  */
-
-
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
@@ -1073,43 +987,6 @@ void hermitian_matrix_rank_k_update(
       }
     }
   }
-
-
-  /*
-  size_type nrows_C = C.extent(0);
-  size_type ncols_C = C.extent(1);
-  size_type ncols_A = A.extent(1);
-  auto cols_a = std::ranges::iota_view{size_type(0), ncols_A};
-  auto rows_c = std::ranges::iota_view{size_type(0), nrows_C};
-  auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-
-  std::for_each(std::execution::par,rows_c.begin(), rows_c.end(), [=](size_type row_c) {
-
-#if !defined(LINALG_FIX_RANK_UPDATES)
-    C(row_c,row_c) = impl::real_if_needed(C(row_c,row_c));
-#endif
-
-    auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-    std::for_each(std::execution::par,cols_c.begin(), cols_c.end(), [=](size_type col_c) {
-
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row_c,col_c) = ElementType_C{};
-#endif
-
-      // dot product of row and vector
-      C(row_c,col_c) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols_a.begin(), cols_a.end(),          // Range of the first vector
-        ElementType_C{},                              // Initial value for accumulation
-        std::plus <> (), 
-        [=](auto col_a){
-          return A(row_c,col_a) * impl::conj_if_needed(B(col_c,col_a)) + B(row_c,col_a) * impl::conj_if_needed(A(col_c,col_a));
-        }
-      );
-    }
-  }
-  */
-
 }
 
 MDSPAN_TEMPLATE_REQUIRES(
@@ -1233,43 +1110,6 @@ void hermitian_matrix_rank_k_update(
       }
     }
   }
-  
-
-  /*
-  size_type nrows_C = C.extent(0);
-  size_type ncols_C = C.extent(1);
-  size_type ncols_A = A.extent(1);
-  auto cols_a = std::ranges::iota_view{size_type(0), ncols_A};
-  auto rows_c = std::ranges::iota_view{size_type(0), nrows_C};
-  auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-
-  std::for_each(std::execution::par,rows_c.begin(), rows_c.end(), [=](size_type row_c) {
-
-#if !defined(LINALG_FIX_RANK_UPDATES)
-    C(row_c,row_c) = impl::real_if_needed(C(row_c,row_c));
-#endif
-
-    auto cols_c = std::ranges::iota_view{size_type(0), ncols_C};
-    std::for_each(std::execution::par,cols_c.begin(), cols_c.end(), [=](size_type col_c) {
-
-#if defined(LINALG_FIX_RANK_UPDATES)
-      C(row_c,col_c) = ElementType_C{};
-#endif
-
-      // dot product of row and vector
-      C(row_c,col_c) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols_a.begin(), cols_a.end(),          // Range of the first vector
-        ElementType_C{},                              // Initial value for accumulation
-        std::plus <> (), 
-        [=](auto col_a){
-          return A(row_c,col_a) * impl::conj_if_needed(B(col_c,col_a)) + B(row_c,col_a) * impl::conj_if_needed(A(col_c,col_a));
-        }
-      );
-    }
-  }
-  */
-  
 }
 
 MDSPAN_TEMPLATE_REQUIRES(

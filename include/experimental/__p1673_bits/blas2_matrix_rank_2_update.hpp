@@ -173,12 +173,8 @@ void symmetric_matrix_rank_2_update(
     }
     if (!lower_tri && row > col){
       return;
-    }   
-#if defined(LINALG_FIX_RANK_UPDATES)
+    }
     A(row,col) = x(row) * y(col) + y(row) * x(col);
-#else
-    A(row,col) += x(row) * y(col) + y(row) * x(col);
-#endif // LINALG_FIX_RANK_UPDATES
   });
 }
 
@@ -487,12 +483,7 @@ void hermitian_matrix_rank_2_update(
     }   
 
     A(col,col) = impl::real_if_needed(A(col,col));
-
-#if defined(LINALG_FIX_RANK_UPDATES)
-      A(row,col) = x(row) * impl::conj_if_needed(y(col)) + y(row) * impl::conj_if_needed(x(col));
-#else
-      A(row,col) += x(row) * impl::conj_if_needed(y(col)) + y(row) * impl::conj_if_needed(x(col));
-#endif
+    A(row,col) = x(row) * impl::conj_if_needed(y(col)) + y(row) * impl::conj_if_needed(x(col));
   });
 }
 

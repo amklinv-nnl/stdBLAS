@@ -266,11 +266,7 @@ void matrix_rank_1_update(
   auto pairs = std::ranges::cartesian_product_view(rows, cols);
   std::for_each(std::execution::par,pairs.begin(), pairs.end(), [=](auto pair) {
     auto [row, col] = pair;
-    #if defined(LINALG_FIX_RANK_UPDATES)
-          A(row,col) = x(row) * y(col);
-    #else
-          A(row,col) += x(row) * y(col);
-    #endif
+    A(row,col) = x(row) * y(col);
   });
 }
 
@@ -630,10 +626,7 @@ void symmetric_matrix_rank_1_update(
     if (!lower_tri && row > col){
       return;
     }   
-#if defined(LINALG_FIX_RANK_UPDATES)
-    A(row,col) = typename decltype(A)::value_type{};
-#endif // LINALG_FIX_RANK_UPDATES
-    A(row,col) += alpha * x(row) * x(col);
+    A(row,col) = alpha * x(row) * x(col);
   });
 }
 
