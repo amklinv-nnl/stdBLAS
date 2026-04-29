@@ -18,6 +18,7 @@
 #ifndef LINALG_INCLUDE_EXPERIMENTAL___P1673_BITS_BLAS1_GIVENS_HPP_
 #define LINALG_INCLUDE_EXPERIMENTAL___P1673_BITS_BLAS1_GIVENS_HPP_
 
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <ranges>

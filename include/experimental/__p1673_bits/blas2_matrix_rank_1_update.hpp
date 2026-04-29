@@ -15,6 +15,7 @@
 // ************************************************************************
 //@HEADER
 
+#include <algorithm>
 #include <ranges>
 
 #ifndef LINALG_INCLUDE_EXPERIMENTAL___P1673_BITS_BLAS2_MATRIX_RANK_1_UPDATE_HPP_

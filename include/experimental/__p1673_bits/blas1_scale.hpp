@@ -15,6 +15,7 @@
 // ************************************************************************
 //@HEADER
 
+#include <algorithm>
 #include <ranges>
 #include <execution>
 
