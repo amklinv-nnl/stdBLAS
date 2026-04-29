@@ -1265,7 +1265,6 @@ void triangular_matrix_vector_product(
       std::common_type_t<SizeType_A, SizeType_x>,
     SizeType_y>;
 
-  /*
   for (size_type i = 0; i < A.extent(0); ++i) {
     y(i) = ElementType_y{};
   }
@@ -1294,53 +1293,6 @@ void triangular_matrix_vector_product(
       }
     }
   }
-  */
-
-  size_type nrows = A.extent(0);
-  size_type ncols = A.extent(1);
-
-  auto rows = std::ranges::iota_view{size_type(0), nrows};
-  auto cols = std::ranges::iota_view{size_type(0), ncols};
-
-  constexpr bool explicitDiagonal =
-    std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-
-  /*
-  if constexpr (std::is_same_v<Triangle, lower_triangle_t>) {
-    for(rows.begin(), rows.end(), [=](size_type row) {
-      y(row) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols.begin(), cols.end(),          // Range of the first vector
-        ElementType_y{},              // calls default constructor -initialize initial value to zero 
-        std::plus <> (), [=](auto col){
-          if (col > row){  // this is lower_triangle so if col > row skip it
-            return;
-          }
-          else{
-            return A(row,col) * x(col);   // we are acessing the lower tirangular part of the matrix
-          }
-        }
-      );
-    });
-  }
-  else{
-    for(rows.begin(), rows.end(), [=](size_type row) {
-      y(row) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols.begin(), cols.end(),          // Range of the first vector
-        ElementType_y{},              // calls default constructor -initialize initial value to zero 
-        std::plus <> (), [=](auto col){
-          if (row > col){    // this is upper_triangle so if row > col skip it
-            return;
-          }
-          else{
-            return A(row,col) * x(col);   // we are acessing the upper tirangular part of the matrix
-          }
-        }
-      );
-    });
-  }
-  */
 }
 
 template<class ExecutionPolicy,
@@ -1458,8 +1410,6 @@ void triangular_matrix_vector_product(
       typename Extents_y::size_type /* SizeType_y */ >,
     typename Extents_z::size_type /* SizeType_z */ >;
 
-
-  /*
   for (size_type i = 0; i < A.extent(0); ++i) {
     z(i) = y(i);
   }
@@ -1487,52 +1437,6 @@ void triangular_matrix_vector_product(
         z(j) = z(j) + x(j);  // 1 times
       }
     }
-  }
-  */
-
-  size_type nrows = A.extent(0);
-  size_type ncols = A.extent(1);
-
-  auto rows = std::ranges::iota_view{size_type(0), nrows};
-  auto cols = std::ranges::iota_view{size_type(0), ncols};
-
-  if constexpr (std::is_same_v<Triangle, lower_triangle_t>) {
-    std::for_each(rows.begin(), rows.end(), [=](size_type row) {
-      z(row) = y(row);
-
-      z(row) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols.begin(), cols.end(),          // Range of the first vector
-        z(row),              //  Initial value for accumulation
-        std::plus <> (), [=](auto col){
-          if (col > row){  // this is lower_triangle so if col > row skip it
-            return ElementType_z{};
-          }
-          else{
-            return A(row,col) * x(col);   // we are acessing the lower tirangular part of the matrix
-          }
-        }
-      );
-    });
-  }
-  else{  // this is the upper traingular case
-    std::for_each(rows.begin(), rows.end(), [=](size_type row) {
-      z(row) = y(row);
-
-      z(row) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols.begin(), cols.end(),          // Range of the first vector
-        z(row),                              // Initial value for accumulation
-        std::plus <> (), [=](auto col){
-          if (row > col){    // this is upper_triangle so if row > col skip it
-            return ElementType_z{}; 
-          }
-          else{
-            return A(row,col) * x(col);   // we are acessing the upper tirangular part of the matrix
-          }
-        }
-      );
-    });
   }
 }
 
@@ -1645,7 +1549,6 @@ void triangular_matrix_vector_product(
   constexpr bool explicitDiagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
 
-  /*
   if constexpr (std::is_same_v<Triangle, lower_triangle_t>) {
     for (size_type k = 0; k < A.extent(1); ++k) {
       size_type j = A.extent(1) - (k + size_type(1));
@@ -1669,51 +1572,6 @@ void triangular_matrix_vector_product(
       }
     }
   }
-  */
-
-  size_type nrows = A.extent(0);
-  size_type ncols = A.extent(1);
-
-  auto rows = std::ranges::iota_view{size_type(0), nrows};
-  auto cols = std::ranges::iota_view{size_type(0), ncols};
-
-  /*
-  if constexpr (std::is_same_v<Triangle, lower_triangle_t>) {
-    std::for(rows.begin(), rows.end(), [=](size_type row) {
-      y(row) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols.begin(), cols.end(),          // Range of the first vector
-        ElementType_y tmp = y(col);
-        std::plus <> (), [=](auto col){
-          if (col > row){   // this is lower_triangle so if col > row skip it
-            return;
-          }
-          else if (row > col){
-            return A(row,col) * tmp;   // we are acessing the lower tirangular part of the matrix
-          }
-        }
-      );
-    });
-  }
-  else{
-    std::for(rows.begin(), rows.end(), [=](size_type row) {
-      y(row) = std::transform_reduce(
-        std::execution::par,           // Parallel execution policy
-        cols.begin(), cols.end(),          // Range of the first vector
-        ElementType_y tmp = y(col);
-        std::plus <> (), [=](auto col){
-          if (row > col){    // this is upper_triangle so if row > col skip it
-            return;
-          }
-          else{
-            return A(row,col) * tmp;   // we are acessing the upper tirangular part of the matrix
-          }
-        }
-      );
-    });
-  }
-  */
-  
 }
 
 template<class ExecutionPolicy,
