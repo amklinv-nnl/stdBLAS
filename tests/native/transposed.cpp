@@ -200,8 +200,8 @@ namespace {
     }
   }
 
-  template<size_t PaddingValue>
-  void test_transposed_layout_left_padded(auto runtime_padding_value)
+  template<size_t PaddingValue, class PaddingValueType>
+  void test_transposed_layout_left_padded(PaddingValueType runtime_padding_value)
   {
     auto test_one = [=] (auto in_exts, auto out_exts,
                          std::vector<char>& fake_storage)
@@ -248,8 +248,8 @@ namespace {
     }
   }
 
-  template<size_t PaddingValue>
-  void test_transposed_layout_right_padded(auto runtime_padding_value)
+  template<size_t PaddingValue, class PaddingValueType>
+  void test_transposed_layout_right_padded(PaddingValueType runtime_padding_value)
   {
     auto test_one = [=] (auto in_exts, auto out_exts,
                          std::vector<char>& fake_storage)

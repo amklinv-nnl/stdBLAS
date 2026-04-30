@@ -140,11 +140,7 @@ public:
   P1673_PROXY_REFERENCE_ARITHMETIC_OPERATOR( / )
 
   friend auto abs(const derived_type& x) {
-    if constexpr (std::is_unsigned_v<value_type>) {
-      return value_type(static_cast<const this_type&>(x));
-    } else {
-      return abs(value_type(static_cast<const this_type&>(x)));
-    }
+    return impl::abs_if_needed(value_type(static_cast<const this_type&>(x)));
   }
 
   friend auto real(const derived_type& x) {
