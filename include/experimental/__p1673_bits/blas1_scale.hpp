@@ -26,22 +26,22 @@ namespace linalg {
 namespace {
 
 template<class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 void linalg_scale_rank_1(
   const Scalar alpha,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
 {
-  for (SizeType i = 0; i < x.extent(0); ++i) {
+  for (IndexType i = 0; i < x.extent(0); ++i) {
     x(i) *= alpha;
   }
 }
 
 template<class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t numRows,
          ::std::size_t numCols,
          class Layout,
@@ -49,10 +49,10 @@ template<class ElementType,
          class Scalar>
 void linalg_scale_rank_2(
   const Scalar alpha,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A)
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A)
 {
-  for (SizeType j = 0; j < A.extent(1); ++j) {
-    for (SizeType i = 0; i < A.extent(0); ++i) {
+  for (IndexType j = 0; j < A.extent(1); ++j) {
+    for (IndexType i = 0; i < A.extent(0); ++i) {
       A(i,j) *= alpha;
     }
   }
@@ -79,14 +79,14 @@ struct is_custom_scale_avail<
 
 template<class Scalar,
          class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t ... ext,
          class Layout,
          class Accessor>
 void scale(
   impl::inline_exec_t&& /* exec */,
   const Scalar alpha,
-  mdspan<ElementType, extents<SizeType, ext ...>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext ...>, Layout, Accessor> x)
 {
   static_assert(x.rank() <= 2);
 
@@ -101,14 +101,14 @@ void scale(
 template<class ExecutionPolicy,
          class Scalar,
          class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t ... ext,
          class Layout,
          class Accessor>
 void scale(
   ExecutionPolicy&& exec,
   const Scalar alpha,
-  mdspan<ElementType, extents<SizeType, ext ...>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext ...>, Layout, Accessor> x)
 {
   // Call custom overload if available else call std implementation
 
@@ -125,12 +125,12 @@ void scale(
 
 template<class Scalar,
          class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t ... ext,
          class Layout,
          class Accessor>
 void scale(const Scalar alpha,
-           mdspan<ElementType, extents<SizeType, ext ...>, Layout, Accessor> x)
+           mdspan<ElementType, extents<IndexType, ext ...>, Layout, Accessor> x)
 {
   scale(impl::default_exec_t{}, alpha, x);
 }

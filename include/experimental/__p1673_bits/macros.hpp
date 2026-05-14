@@ -54,7 +54,7 @@ static_assert(_LINALG_CPLUSPLUS >= _LINALG_CXX_STD_17, "stdBLAS requires C++17 o
 #endif
 
 #define P1673_MATRIX_EXTENTS_TEMPLATE_PARAMETERS( MATRIX_NAME ) \
-  class SizeType_ ## MATRIX_NAME , \
+  class IndexType_ ## MATRIX_NAME , \
   ::std::size_t numRows_ ## MATRIX_NAME , \
   ::std::size_t numCols_ ## MATRIX_NAME
 
@@ -66,7 +66,7 @@ static_assert(_LINALG_CPLUSPLUS >= _LINALG_CXX_STD_17, "stdBLAS requires C++17 o
 
 #define P1673_MATRIX_EXTENTS_PARAMETER( MATRIX_NAME ) \
   extents< \
-    SizeType_ ## MATRIX_NAME , \
+    IndexType_ ## MATRIX_NAME , \
     numRows_ ## MATRIX_NAME , \
     numCols_ ## MATRIX_NAME \
   >

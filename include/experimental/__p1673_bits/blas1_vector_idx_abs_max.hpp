@@ -44,11 +44,11 @@ struct is_custom_vector_idx_abs_max_avail<
   : std::true_type{};
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
-SizeType vector_idx_abs_max_default_impl(
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v)
+IndexType vector_idx_abs_max_default_impl(
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v)
 {
   using std::abs;
   using value_type = typename decltype(v)::value_type;
@@ -57,13 +57,13 @@ SizeType vector_idx_abs_max_default_impl(
              impl::abs_if_needed(impl::imag_if_needed(std::declval<value_type>())));
 
   if (v.extent(0) == 0) {
-    return std::numeric_limits<SizeType>::max();
+    return std::numeric_limits<IndexType>::max();
   }
 
   if constexpr (std::is_arithmetic_v<value_type>) {
-    SizeType maxInd = 0;
+    IndexType maxInd = 0;
     magnitude_type maxVal = abs(v(0));
-    for (SizeType i = 1; i < v.extent(0); ++i) {
+    for (IndexType i = 1; i < v.extent(0); ++i) {
       if (maxVal < abs(v(i))) {
         maxVal = abs(v(i));
         maxInd = i;
@@ -73,11 +73,11 @@ SizeType vector_idx_abs_max_default_impl(
     return maxInd;
   }
   else {
-    SizeType maxInd = 0;
+    IndexType maxInd = 0;
     magnitude_type maxVal = impl::abs_if_needed(impl::real_if_needed(v(0))) +
                             impl::abs_if_needed(impl::imag_if_needed(v(0)));
 
-    for (SizeType i = 1; i < v.extent(0); ++i) {
+    for (IndexType i = 1; i < v.extent(0); ++i) {
       magnitude_type val = impl::abs_if_needed(impl::real_if_needed(v(i))) +
                            impl::abs_if_needed(impl::imag_if_needed(v(i)));
 
@@ -94,27 +94,27 @@ SizeType vector_idx_abs_max_default_impl(
 } // end anonymous namespace
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
-SizeType vector_idx_abs_max(
+IndexType vector_idx_abs_max(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v)
 {
   return vector_idx_abs_max_default_impl(v);
 }
 
 template<class ExecutionPolicy,
          class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
-SizeType vector_idx_abs_max(
+IndexType vector_idx_abs_max(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v)
 {
   if (v.extent(0) == 0) {
-    return std::numeric_limits<SizeType>::max();
+    return std::numeric_limits<IndexType>::max();
   }
 
   constexpr bool use_custom = is_custom_vector_idx_abs_max_avail<
@@ -130,11 +130,11 @@ SizeType vector_idx_abs_max(
 }
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
-SizeType vector_idx_abs_max(
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v)
+IndexType vector_idx_abs_max(
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v)
 {
   return vector_idx_abs_max(impl::default_exec_t{}, v);
 }

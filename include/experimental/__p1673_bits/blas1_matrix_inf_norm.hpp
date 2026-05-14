@@ -54,7 +54,7 @@ struct is_custom_matrix_inf_norm_avail<
 
 template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
@@ -62,12 +62,12 @@ template<
     class Scalar>
 Scalar matrix_inf_norm(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   using std::abs;
   using std::max;
-  using size_type = SizeType;
+  using size_type = IndexType;
 
   // Handle special cases.
   auto result = init;
@@ -92,7 +92,7 @@ Scalar matrix_inf_norm(
 template<
   class ExecutionPolicy,
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows,
   ::std::size_t numCols,
   class Layout,
@@ -100,7 +100,7 @@ template<
   class Scalar>
 Scalar matrix_inf_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   constexpr bool use_custom = is_custom_matrix_inf_norm_avail<
@@ -117,14 +117,14 @@ Scalar matrix_inf_norm(
 
 template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
     class Accessor,
     class Scalar>
 Scalar matrix_inf_norm(
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   return matrix_inf_norm(impl::default_exec_t{}, A, init);
@@ -138,25 +138,25 @@ namespace matrix_inf_norm_detail {
   // without exposing "using std::abs" in the outer namespace.
   template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
     class Accessor>
   auto matrix_inf_norm_return_type_deducer(
-    mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A) -> decltype(abs(A(0,0)));
+    mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A) -> decltype(abs(A(0,0)));
 
 } // namespace matrix_inf_norm_detail
 
 template<
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows,
   ::std::size_t numCols,
   class Layout,
   class Accessor>
 auto matrix_inf_norm(
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A)
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A)
 -> decltype(matrix_inf_norm_detail::matrix_inf_norm_return_type_deducer(A))
 {
   using return_t = decltype(matrix_inf_norm_detail::matrix_inf_norm_return_type_deducer(A));
@@ -165,14 +165,14 @@ auto matrix_inf_norm(
 
 template<class ExecutionPolicy,
          class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t numRows,
          ::std::size_t numCols,
          class Layout,
          class Accessor>
 auto matrix_inf_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A)
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A)
 -> decltype(matrix_inf_norm_detail::matrix_inf_norm_return_type_deducer(A))
 {
   using return_t = decltype(matrix_inf_norm_detail::matrix_inf_norm_return_type_deducer(A));
