@@ -52,13 +52,13 @@ struct is_custom_vector_two_norm_avail<
 } // end anonymous namespace
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 Scalar vector_two_norm(
   impl::inline_exec_t&& exec,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x,
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x,
   Scalar init)
 {
   using std::sqrt;
@@ -76,7 +76,7 @@ Scalar vector_two_norm(
   }
   else {
     Scalar result = impl::abs_if_needed(init) * impl::abs_if_needed(init);
-    for (SizeType i = 0; i < x.extent(0); ++i) {
+    for (IndexType i = 0; i < x.extent(0); ++i) {
       result += impl::abs_if_needed(x(i)) * impl::abs_if_needed(x(i));
     }
     return sqrt(result);
@@ -85,13 +85,13 @@ Scalar vector_two_norm(
 
 template<class ExecutionPolicy,
          class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 Scalar vector_two_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x,
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x,
   Scalar init)
 {
   constexpr bool use_custom = is_custom_vector_two_norm_avail<
@@ -107,12 +107,12 @@ Scalar vector_two_norm(
 }
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 Scalar vector_two_norm(
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x,
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x,
   Scalar init)
 {
   return vector_two_norm(impl::default_exec_t{}, x, init);
@@ -126,20 +126,20 @@ namespace vector_two_norm_detail {
   // without exposing "using std::abs" in the outer namespace.
   template<
     class ElementType,
-    class SizeType, ::std::size_t ext0,
+    class IndexType, ::std::size_t ext0,
     class Layout,
     class Accessor>
   auto vector_two_norm_return_type_deducer(
-    mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+    mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
   -> decltype(abs(x(0)) * abs(x(0)));
 } // namespace vector_two_norm_detail
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
 auto vector_two_norm(
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
 -> decltype(vector_two_norm_detail::vector_two_norm_return_type_deducer(x))
 {
   using return_t = decltype(vector_two_norm_detail::vector_two_norm_return_type_deducer(x));
@@ -148,12 +148,12 @@ auto vector_two_norm(
 
 template<class ExecutionPolicy,
          class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
 auto vector_two_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
 -> decltype(vector_two_norm_detail::vector_two_norm_return_type_deducer(x))
 {
   using return_t = decltype(vector_two_norm_detail::vector_two_norm_return_type_deducer(x));

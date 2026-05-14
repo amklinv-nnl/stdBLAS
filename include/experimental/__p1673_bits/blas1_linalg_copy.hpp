@@ -26,43 +26,43 @@ namespace linalg {
 namespace {
 
 template<class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y>
 void copy_rank_1(
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   static_assert(x.static_extent(0) == dynamic_extent ||
                 y.static_extent(0) == dynamic_extent ||
                 x.static_extent(0) == y.static_extent(0));
-  using size_type = std::common_type_t<SizeType_x, SizeType_y>;
+  using size_type = std::common_type_t<IndexType_x, IndexType_y>;
   for (size_type i = 0; i < y.extent(0); ++i) {
     y(i) = x(i);
   }
 }
 
 template<class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t numRows_x,
          ::std::size_t numCols_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t numRows_y,
          ::std::size_t numCols_y,
          class Layout_y,
          class Accessor_y>
 void copy_rank_2(
-  mdspan<ElementType_x, extents<SizeType_x, numRows_x, numCols_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, numRows_y, numCols_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, numRows_x, numCols_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, numRows_y, numCols_y>, Layout_y, Accessor_y> y)
 {
   static_assert(x.static_extent(0) == dynamic_extent ||
                 y.static_extent(0) == dynamic_extent ||
@@ -70,7 +70,7 @@ void copy_rank_2(
   static_assert(x.static_extent(1) == dynamic_extent ||
                 y.static_extent(1) == dynamic_extent ||
                 x.static_extent(1) == y.static_extent(1));
-  using size_type = std::common_type_t<SizeType_x, SizeType_y>;
+  using size_type = std::common_type_t<IndexType_x, IndexType_y>;
   for (size_type j = 0; j < y.extent(1); ++j) {
     for (size_type i = 0; i < y.extent(0); ++i) {
       y(i,j) = x(i,j);
@@ -103,12 +103,12 @@ struct is_custom_copy_avail<
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ... ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ... ext_y,
          class Layout_y,
          class Accessor_y,
@@ -116,8 +116,8 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void copy(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x ...>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y ...>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x ...>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y ...>, Layout_y, Accessor_y> y)
 {
   if constexpr (x.rank() == 1) {
     copy_rank_1(x, y);
@@ -130,12 +130,12 @@ void copy(
 MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ... ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ... ext_y,
          class Layout_y,
          class Accessor_y,
@@ -143,8 +143,8 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void copy(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x ...>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y ...>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x ...>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y ...>, Layout_y, Accessor_y> y)
 {
   constexpr bool use_custom = is_custom_copy_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(x), decltype(y)
@@ -160,20 +160,20 @@ void copy(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ... ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ... ext_y,
          class Layout_y,
          class Accessor_y,
          /* requires */ (sizeof...(ext_x) == sizeof...(ext_y))
 )
 void copy(
-  mdspan<ElementType_x, extents<SizeType_x, ext_x ...>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y ...>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x ...>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y ...>, Layout_y, Accessor_y> y)
 {
   copy(impl::default_exec_t(), x, y);
 }

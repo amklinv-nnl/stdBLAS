@@ -348,12 +348,12 @@ label20:
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType1,
-	 class SizeType1,
+	 class IndexType1,
          ::std::size_t ext1,
          class Layout1,
          class Accessor1,
          class ElementType2,
-	 class SizeType2,
+	 class IndexType2,
          ::std::size_t ext2,
          class Layout2,
          class Accessor2,
@@ -362,8 +362,8 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void apply_givens_rotation(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType1, extents<SizeType1, ext1>, Layout1, Accessor1> x,
-  mdspan<ElementType2, extents<SizeType2, ext2>, Layout2, Accessor2> y,
+  mdspan<ElementType1, extents<IndexType1, ext1>, Layout1, Accessor1> x,
+  mdspan<ElementType2, extents<IndexType2, ext2>, Layout2, Accessor2> y,
   const Real c,
   const Real s)
 {
@@ -371,7 +371,7 @@ void apply_givens_rotation(
                 y.static_extent(0) == dynamic_extent ||
                 x.static_extent(0) == y.static_extent(0));
 
-  using index_type = ::std::common_type_t<SizeType1, SizeType2>;
+  using index_type = ::std::common_type_t<IndexType1, IndexType2>;
   const auto x_extent_0 = static_cast<index_type>(x.extent(0));
   for (index_type i = 0; i < x_extent_0; ++i) {
     const auto dtemp = c * x(i) + s * y(i);
@@ -383,12 +383,12 @@ void apply_givens_rotation(
 MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType1,
-	 class SizeType1,
+	 class IndexType1,
          ::std::size_t ext1,
          class Layout1,
          class Accessor1,
          class ElementType2,
-	 class SizeType2,
+	 class IndexType2,
          ::std::size_t ext2,
          class Layout2,
          class Accessor2,
@@ -397,8 +397,8 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void apply_givens_rotation(
   ExecutionPolicy&& exec,
-  mdspan<ElementType1, extents<SizeType1, ext1>, Layout1, Accessor1> x,
-  mdspan<ElementType2, extents<SizeType2, ext2>, Layout2, Accessor2> y,
+  mdspan<ElementType1, extents<IndexType1, ext1>, Layout1, Accessor1> x,
+  mdspan<ElementType2, extents<IndexType2, ext2>, Layout2, Accessor2> y,
   const Real c,
   const Real s)
 {
@@ -417,12 +417,12 @@ void apply_givens_rotation(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType1,
-	 class SizeType1,
+	 class IndexType1,
          ::std::size_t ext1,
          class Layout1,
          class Accessor1,
          class ElementType2,
-	 class SizeType2,
+	 class IndexType2,
          ::std::size_t ext2,
          class Layout2,
          class Accessor2,
@@ -430,8 +430,8 @@ MDSPAN_TEMPLATE_REQUIRES(
          /* requires */ (MDSPAN_IMPL_TRAIT(std::is_floating_point, Real))
 )
 void apply_givens_rotation(
-  mdspan<ElementType1, extents<SizeType1, ext1>, Layout1, Accessor1> x,
-  mdspan<ElementType2, extents<SizeType2, ext2>, Layout2, Accessor2> y,
+  mdspan<ElementType1, extents<IndexType1, ext1>, Layout1, Accessor1> x,
+  mdspan<ElementType2, extents<IndexType2, ext2>, Layout2, Accessor2> y,
   const Real c,
   const Real s)
 {
@@ -443,12 +443,12 @@ void apply_givens_rotation(
 // s is complex<std::floating_point>
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType1,
-	 class SizeType1,
+	 class IndexType1,
          ::std::size_t ext1,
          class Layout1,
          class Accessor1,
          class ElementType2,
-	 class SizeType2,
+	 class IndexType2,
          ::std::size_t ext2,
          class Layout2,
          class Accessor2,
@@ -457,8 +457,8 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void apply_givens_rotation(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType1, extents<SizeType1, ext1>, Layout1, Accessor1> x,
-  mdspan<ElementType2, extents<SizeType2, ext2>, Layout2, Accessor2> y,
+  mdspan<ElementType1, extents<IndexType1, ext1>, Layout1, Accessor1> x,
+  mdspan<ElementType2, extents<IndexType2, ext2>, Layout2, Accessor2> y,
   const Real c,
   const std::complex<Real> s)
 {
@@ -467,7 +467,7 @@ void apply_givens_rotation(
                 x.static_extent(0) == y.static_extent(0));
 
   using std::conj;
-  using index_type = ::std::common_type_t<SizeType1, SizeType2>;
+  using index_type = ::std::common_type_t<IndexType1, IndexType2>;
   const auto x_extent_0 = static_cast<index_type>(x.extent(0));
   for (index_type i = 0; i < x_extent_0; ++i) {
     const auto dtemp = c * x(i) + s * y(i);
@@ -479,12 +479,12 @@ void apply_givens_rotation(
 MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType1,
-	 class SizeType1,
+	 class IndexType1,
          ::std::size_t ext1,
          class Layout1,
          class Accessor1,
          class ElementType2,
-	 class SizeType2,
+	 class IndexType2,
          ::std::size_t ext2,
          class Layout2,
          class Accessor2,
@@ -493,8 +493,8 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void apply_givens_rotation(
   ExecutionPolicy&& exec,
-  mdspan<ElementType1, extents<SizeType1, ext1>, Layout1, Accessor1> x,
-  mdspan<ElementType2, extents<SizeType2, ext2>, Layout2, Accessor2> y,
+  mdspan<ElementType1, extents<IndexType1, ext1>, Layout1, Accessor1> x,
+  mdspan<ElementType2, extents<IndexType2, ext2>, Layout2, Accessor2> y,
   const Real c,
   const std::complex<Real> s)
 {
@@ -512,12 +512,12 @@ void apply_givens_rotation(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType1,
-	 class SizeType1,
+	 class IndexType1,
          ::std::size_t ext1,
          class Layout1,
          class Accessor1,
          class ElementType2,
-	 class SizeType2,
+	 class IndexType2,
          ::std::size_t ext2,
          class Layout2,
          class Accessor2,
@@ -525,8 +525,8 @@ MDSPAN_TEMPLATE_REQUIRES(
          /* requires */ (MDSPAN_IMPL_TRAIT(std::is_floating_point, Real))
 )
 void apply_givens_rotation(
-  mdspan<ElementType1, extents<SizeType1, ext1>, Layout1, Accessor1> x,
-  mdspan<ElementType2, extents<SizeType2, ext2>, Layout2, Accessor2> y,
+  mdspan<ElementType1, extents<IndexType1, ext1>, Layout1, Accessor1> x,
+  mdspan<ElementType2, extents<IndexType2, ext2>, Layout2, Accessor2> y,
   const Real c,
   const std::complex<Real> s)
 {

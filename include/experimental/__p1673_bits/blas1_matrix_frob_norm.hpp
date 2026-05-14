@@ -53,7 +53,7 @@ struct is_custom_matrix_frob_norm_avail<
 
 template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
@@ -61,12 +61,12 @@ template<
     class Scalar>
 Scalar matrix_frob_norm(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   using std::abs;
   using std::sqrt;
-  using size_type = SizeType;
+  using size_type = IndexType;
 
   // Handle special cases.
   auto result = init;
@@ -102,7 +102,7 @@ Scalar matrix_frob_norm(
 
 template<class ExecutionPolicy,
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows,
   ::std::size_t numCols,
   class Layout,
@@ -110,7 +110,7 @@ template<class ExecutionPolicy,
   class Scalar>
 Scalar matrix_frob_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   constexpr bool use_custom = is_custom_matrix_frob_norm_avail<
@@ -127,7 +127,7 @@ Scalar matrix_frob_norm(
 
 template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
@@ -136,7 +136,7 @@ template<
 Scalar matrix_frob_norm(
   mdspan<
     ElementType,
-    extents<SizeType, numRows, numCols>,
+    extents<IndexType, numRows, numCols>,
     Layout,
     Accessor> A,
   Scalar init)
@@ -150,13 +150,13 @@ namespace matrix_frob_norm_detail {
   using std::abs;
   template<
     class ElementType,
-    class SizeType, ::std::size_t numRows, ::std::size_t numCols,
+    class IndexType, ::std::size_t numRows, ::std::size_t numCols,
     class Layout,
     class Accessor>
   auto matrix_frob_norm_return_type_deducer(
     mdspan<
       ElementType,
-      extents<SizeType, numRows, numCols>,
+      extents<IndexType, numRows, numCols>,
       Layout,
       Accessor
     > A) -> decltype( abs(A(0,0)) * abs(A(0,0)) );
@@ -165,14 +165,14 @@ namespace matrix_frob_norm_detail {
 
 template<
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows,
   ::std::size_t numCols,
   class Layout,
   class Accessor>
 auto matrix_frob_norm(
   mdspan<
-    ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor
+    ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor
   > A)
   -> decltype(matrix_frob_norm_detail::matrix_frob_norm_return_type_deducer(A))
 {
@@ -183,7 +183,7 @@ auto matrix_frob_norm(
 template<
   class ExecutionPolicy,
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows,
   ::std::size_t numCols,
   class Layout,
@@ -192,7 +192,7 @@ auto matrix_frob_norm(
   ExecutionPolicy&& exec,
   mdspan<
     ElementType,
-    extents<SizeType, numRows, numCols>,
+    extents<IndexType, numRows, numCols>,
     Layout,
     Accessor
   > A)

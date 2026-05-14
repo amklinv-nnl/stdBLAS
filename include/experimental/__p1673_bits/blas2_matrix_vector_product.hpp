@@ -249,30 +249,30 @@ namespace impl {
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A> >::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A> >::is_always_unique())
 )
 void matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   using size_type = std::common_type_t<
     std::common_type_t<
-      std::common_type_t<SizeType_A, SizeType_x>,
-      SizeType_y>>;
+      std::common_type_t<IndexType_A, IndexType_x>,
+      IndexType_y>>;
   for (size_type i = 0; i < A.extent(0); ++i) {
     y(i) = ElementType_y{};
     for (size_type j = 0; j < A.extent(1); ++j) {
@@ -284,26 +284,26 @@ void matrix_vector_product(
 MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
 	 /* requires */ (! impl::is_mdspan_v<std::remove_cv_t<std::remove_reference_t<ExecutionPolicy>>> &&
-			 Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A> >::is_always_unique())
+			 Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A> >::is_always_unique())
 )
 void matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   constexpr bool use_custom = is_custom_mat_vec_product_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(A), decltype(x), decltype(y)>::value;
@@ -316,22 +316,22 @@ void matrix_vector_product(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y>
 void matrix_vector_product(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   matrix_vector_product(impl::default_exec_t{}, A, x, y);
 }
@@ -342,10 +342,10 @@ namespace impl {
     static constexpr bool value = false;
   };
 
-  template<class Layout, class SizeType, size_t ... Extents>
-  struct always_unique_mapping<Layout, extents<SizeType, Extents...>> {
+  template<class Layout, class IndexType, size_t ... Extents>
+  struct always_unique_mapping<Layout, extents<IndexType, Extents...>> {
   private:
-    using extents_type = extents<SizeType, Extents...>;
+    using extents_type = extents<IndexType, Extents...>;
   public:
     static constexpr bool value = Layout::template mapping<extents_type>::is_always_unique();
   };
@@ -359,7 +359,7 @@ namespace impl {
 // FIXME (mfh 2022/06/19) Some work-around here for GCC 9 and/or macro insufficiencies.
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         /* class SizeType_A,
+         /* class IndexType_A,
 	 size_t numRows_A,
 	 size_t numCols_A,
 	 */
@@ -367,31 +367,31 @@ MDSPAN_TEMPLATE_REQUIRES(
          class Layout_A,
          class Accessor_A,
          class ElementType_x,
-         class SizeType_x, size_t ext_x,
+         class IndexType_x, size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, size_t ext_y,
+         class IndexType_y, size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-         class SizeType_z, size_t ext_z,
+         class IndexType_z, size_t ext_z,
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* SizeType_A, numRows_A, numCols_A */> && Extents_A::rank() == 2)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* IndexType_A, numRows_A, numCols_A */> && Extents_A::rank() == 2)
 )
 void matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */, Layout_A, Accessor_A> A,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */, Layout_A, Accessor_A> A,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z>, Layout_z, Accessor_z> z)
 {
   using size_type = std::common_type_t<
     std::common_type_t<
-      std::common_type_t<typename Extents_A::size_type /* SizeType_A */, SizeType_x>,
-      SizeType_y>,
-    SizeType_z>;
+      std::common_type_t<typename Extents_A::size_type /* IndexType_A */, IndexType_x>,
+      IndexType_y>,
+    IndexType_z>;
   for (size_type i = 0; i < A.extent(0); ++i) {
     z(i) = y(i);
     for (size_type j = 0; j < A.extent(1); ++j) {
@@ -405,32 +405,32 @@ MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType_A,
 	 class Extents_A,
-         /* class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A, */
+         /* class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A, */
          class Layout_A,
          class Accessor_A,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
 	 class Extents_z,
-         /* class SizeType_z, ::std::size_t ext_z, */
+         /* class IndexType_z, ::std::size_t ext_z, */
          class Layout_z,
          class Accessor_z,
 	 /* requires */ (! impl::is_mdspan_v<std::remove_cv_t<std::remove_reference_t<ExecutionPolicy>>> &&
-			 Layout_A::template mapping<Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ >::is_always_unique() &&
+			 Layout_A::template mapping<Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ >::is_always_unique() &&
 			 Extents_A::rank() == 2 && Extents_z::rank() == 1)
 )
 void matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x> , Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, Extents_z /* extents<SizeType_z, ext_z> */ , Layout_z, Accessor_z> z)
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x> , Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, Extents_z /* extents<IndexType_z, ext_z> */ , Layout_z, Accessor_z> z)
 {
 
   constexpr bool use_custom = is_custom_mat_vec_product_with_update_avail<
@@ -447,30 +447,30 @@ void matrix_vector_product(
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
 	 class Extents_A,
-	 /* class SizeType_A,
+	 /* class IndexType_A,
 	 ::std::size_t numRows_A,
          ::std::size_t numCols_A, */
          class Layout_A,
          class Accessor_A,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-         class SizeType_z, ::std::size_t ext_z,
+         class IndexType_z, ::std::size_t ext_z,
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
 )
 void matrix_vector_product(
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */, Layout_A, Accessor_A> A,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */, Layout_A, Accessor_A> A,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z>, Layout_z, Accessor_z> z)
 {
   matrix_vector_product(impl::default_exec_t{}, A, x, y, z);
 }
@@ -480,31 +480,31 @@ void matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void symmetric_matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   using size_type = std::common_type_t<
-      std::common_type_t<SizeType_A, SizeType_x>,
-    SizeType_y>;
+      std::common_type_t<IndexType_A, IndexType_x>,
+    IndexType_y>;
 
   for (size_type i = 0; i < A.extent(0); ++i) {
     y(i) = ElementType_y{};
@@ -534,25 +534,25 @@ void symmetric_matrix_vector_product(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y>
 void symmetric_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   constexpr bool use_custom = is_custom_sym_mat_vec_product_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(A), Triangle, decltype(x), decltype(y)>::value;
@@ -566,26 +566,26 @@ void symmetric_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void symmetric_matrix_vector_product(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   symmetric_matrix_vector_product(impl::default_exec_t{}, A, t, x, y);
 }
@@ -601,15 +601,15 @@ MDSPAN_TEMPLATE_REQUIRES(
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-         /* class SizeType_z, ::std::size_t ext_z, */
+         /* class IndexType_z, ::std::size_t ext_z, */
 	 class Extents_z,
          class Layout_z,
          class Accessor_z,
@@ -619,14 +619,14 @@ void symmetric_matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
   mdspan<ElementType_A, Extents_A, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
   mdspan<ElementType_z, Extents_z, Layout_z, Accessor_z> z)
 {
   using size_type = std::common_type_t<
     std::common_type_t<
-      std::common_type_t<typename Extents_A::size_type, SizeType_x>,
-      SizeType_y>,
+      std::common_type_t<typename Extents_A::size_type, IndexType_x>,
+      IndexType_y>,
     typename Extents_z::size_type>;
 
   for (size_type i = 0; i < A.extent(0); ++i) {
@@ -657,30 +657,30 @@ void symmetric_matrix_vector_product(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-         class SizeType_z, ::std::size_t ext_z,
+         class IndexType_z, ::std::size_t ext_z,
          class Layout_z,
          class Accessor_z>
 auto symmetric_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z>, Layout_z, Accessor_z> z) -> std::enable_if_t<!std::is_same_v<ExecutionPolicy, impl::inline_exec_t>>
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z>, Layout_z, Accessor_z> z) -> std::enable_if_t<!std::is_same_v<ExecutionPolicy, impl::inline_exec_t>>
 {
   constexpr bool use_custom = is_custom_sym_mat_vec_product_with_update_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(A), Triangle, decltype(x), decltype(y), decltype(z)>::value;
@@ -696,33 +696,33 @@ MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
 	 class Extents_A,
 	 /*
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
 	 */
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
 	 class Extents_z,
-         /* class SizeType_z, ::std::size_t ext_z, */
+         /* class IndexType_z, ::std::size_t ext_z, */
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2 && Extents_z::rank() == 1)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2 && Extents_z::rank() == 1)
 )
 void symmetric_matrix_vector_product(
-  mdspan<ElementType_A,  Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
+  mdspan<ElementType_A,  Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, Extents_z /* extents<SizeType_z, ext_z> */ , Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, Extents_z /* extents<IndexType_z, ext_z> */ , Layout_z, Accessor_z> z)
 {
   symmetric_matrix_vector_product(impl::default_exec_t{}, A, t, x, y, z);
 }
@@ -733,31 +733,31 @@ void symmetric_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void hermitian_matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   using size_type = std::common_type_t<
-      std::common_type_t<SizeType_A, SizeType_x>,
-    SizeType_y>;
+      std::common_type_t<IndexType_A, IndexType_x>,
+    IndexType_y>;
 
   for (size_type i = 0; i < A.extent(0); ++i) {
     y(i) = ElementType_y{};
@@ -788,27 +788,27 @@ void hermitian_matrix_vector_product(
 MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void hermitian_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   constexpr bool use_custom = is_custom_hermitian_mat_vec_product_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(A), Triangle, decltype(x), decltype(y)>::value;
@@ -822,26 +822,26 @@ void hermitian_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void hermitian_matrix_vector_product(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   hermitian_matrix_vector_product(impl::default_exec_t{}, A, t, x, y);
 }
@@ -854,40 +854,40 @@ MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
 	 class Extents_A,
 	 /*
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
 	 */
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
 	 class Extents_z,
-	 /* class SizeType_z, ::std::size_t ext_z, */
+	 /* class IndexType_z, ::std::size_t ext_z, */
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2 && Extents_z::rank() == 1)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2 && Extents_z::rank() == 1)
 )
 void hermitian_matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, Extents_z /* extents<SizeType_z, ext_z> */ , Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, Extents_z /* extents<IndexType_z, ext_z> */ , Layout_z, Accessor_z> z)
 {
   using size_type = std::common_type_t<
     std::common_type_t<
-      std::common_type_t<typename Extents_A::size_type /* SizeType_A */ , SizeType_x>,
-      SizeType_y>,
-    typename Extents_z::size_type /* SizeType_z */ >;
+      std::common_type_t<typename Extents_A::size_type /* IndexType_A */ , IndexType_x>,
+      IndexType_y>,
+    typename Extents_z::size_type /* IndexType_z */ >;
 
   for (size_type i = 0; i < A.extent(0); ++i) {
     z(i) = y(i);
@@ -917,30 +917,30 @@ void hermitian_matrix_vector_product(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-         class SizeType_z, ::std::size_t ext_z,
+         class IndexType_z, ::std::size_t ext_z,
          class Layout_z,
          class Accessor_z>
 auto hermitian_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z>, Layout_z, Accessor_z> z) -> std::enable_if_t<!std::is_same_v<ExecutionPolicy, impl::inline_exec_t>>
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z>, Layout_z, Accessor_z> z) -> std::enable_if_t<!std::is_same_v<ExecutionPolicy, impl::inline_exec_t>>
 {
   constexpr bool use_custom = is_custom_hermitian_mat_vec_product_with_update_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(A), Triangle, decltype(x), decltype(y), decltype(z)>::value;
@@ -956,34 +956,34 @@ auto hermitian_matrix_vector_product(
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
 	 class Extents_A,
-	 /* class SizeType_A,
+	 /* class IndexType_A,
 	 ::std::size_t numRows_A,
          ::std::size_t numCols_A, */
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
 	 class Extents_z,
-         /* class SizeType_z,
+         /* class IndexType_z,
          ::std::size_t ext_z, */
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
 )
 void hermitian_matrix_vector_product(
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
   Triangle t,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, Extents_z /* extents<SizeType_z, ext_z> */ , Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, Extents_z /* extents<IndexType_z, ext_z> */ , Layout_z, Accessor_z> z)
 {
   hermitian_matrix_vector_product(impl::default_exec_t{}, A, t, x, y, z);
 }
@@ -993,33 +993,33 @@ void hermitian_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void triangular_matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   using size_type = std::common_type_t<
-      std::common_type_t<SizeType_A, SizeType_x>,
-    SizeType_y>;
+      std::common_type_t<IndexType_A, IndexType_x>,
+    IndexType_y>;
 
   for (size_type i = 0; i < A.extent(0); ++i) {
     y(i) = ElementType_y{};
@@ -1053,27 +1053,27 @@ void triangular_matrix_vector_product(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y>
 void triangular_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
 
   constexpr bool use_custom = is_custom_tri_mat_vec_product_avail<
@@ -1092,28 +1092,28 @@ void triangular_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (Layout_A::template mapping<extents<SizeType_A, numRows_A, numCols_A>>::is_always_unique())
+         /* requires */ (Layout_A::template mapping<extents<IndexType_A, numRows_A, numCols_A>>::is_always_unique())
 )
 void triangular_matrix_vector_product(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   triangular_matrix_vector_product(impl::default_exec_t{}, A, t, d, x, y);
 }
@@ -1124,7 +1124,7 @@ void triangular_matrix_vector_product(
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
 	 class Extents_A,
-	 /* class SizeType_A,
+	 /* class IndexType_A,
 	 ::std::size_t numRows_A,
          ::std::size_t numCols_A, */
          class Layout_A,
@@ -1132,39 +1132,39 @@ MDSPAN_TEMPLATE_REQUIRES(
          class Triangle,
          class DiagonalStorage,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
 	 class Extents_y,
-         /* class SizeType_y,
+         /* class IndexType_y,
          ::std::size_t ext_y, */
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
 	 class Extents_z,
-         /* class SizeType_z,
+         /* class IndexType_z,
          ::std::size_t ext_z, */
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
 )
 void triangular_matrix_vector_product(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, Extents_y /* extents<SizeType_y, ext_y> */ , Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, Extents_z /* extents<SizeType_z, ext_z> */ , Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, Extents_y /* extents<IndexType_y, ext_y> */ , Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, Extents_z /* extents<IndexType_z, ext_z> */ , Layout_z, Accessor_z> z)
 {
   using size_type = std::common_type_t<
     std::common_type_t<
       std::common_type_t<
-	typename Extents_A::size_type /* SizeType_A */ ,
-	SizeType_x>,
-      typename Extents_y::size_type /* SizeType_y */ >,
-    typename Extents_z::size_type /* SizeType_z */ >;
+	typename Extents_A::size_type /* IndexType_A */ ,
+	IndexType_x>,
+      typename Extents_y::size_type /* IndexType_y */ >,
+    typename Extents_z::size_type /* IndexType_z */ >;
 
   for (size_type i = 0; i < A.extent(0); ++i) {
     z(i) = y(i);
@@ -1198,32 +1198,32 @@ void triangular_matrix_vector_product(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-         class SizeType_z, ::std::size_t ext_z,
+         class IndexType_z, ::std::size_t ext_z,
          class Layout_z,
          class Accessor_z>
 auto triangular_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z>, Layout_z, Accessor_z> z) -> std::enable_if_t<!std::is_same_v<ExecutionPolicy, impl::inline_exec_t>>
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z>, Layout_z, Accessor_z> z) -> std::enable_if_t<!std::is_same_v<ExecutionPolicy, impl::inline_exec_t>>
 {
   constexpr bool use_custom = is_custom_tri_mat_vec_product_with_update_avail<
     decltype(impl::map_execpolicy_with_check(exec)),
@@ -1240,7 +1240,7 @@ auto triangular_matrix_vector_product(
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
 	 class Extents_A,
-	 /* class SizeType_A,
+	 /* class IndexType_A,
 	 ::std::size_t numRows_A,
          ::std::size_t numCols_A, */
          class Layout_A,
@@ -1248,30 +1248,30 @@ MDSPAN_TEMPLATE_REQUIRES(
          class Triangle,
          class DiagonalStorage,
          class ElementType_x,
-         class SizeType_x, ::std::size_t ext_x,
+         class IndexType_x, ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
 	 class Extents_y,
-         /* class SizeType_y,
+         /* class IndexType_y,
          ::std::size_t ext_y, */
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
 	 class Extents_z,
-         /* class SizeType_z,
+         /* class IndexType_z,
          ::std::size_t ext_z, */
          class Layout_z,
          class Accessor_z,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ > && Extents_A::rank() == 2)
 )
 void triangular_matrix_vector_product(
-  mdspan<ElementType_A, Extents_A /* extents<SizeType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, Extents_A /* extents<IndexType_A, numRows_A, numCols_A> */ , Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, Extents_y /* extents<SizeType_y, ext_y> */ , Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, Extents_z /* extents<SizeType_z, ext_z> */ , Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, Extents_y /* extents<IndexType_y, ext_y> */ , Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, Extents_z /* extents<IndexType_z, ext_z> */ , Layout_z, Accessor_z> z)
 {
   triangular_matrix_vector_product(impl::default_exec_t{}, A, t, d, x, y, z);
 }
@@ -1280,7 +1280,7 @@ void triangular_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-	     class SizeType_A,
+	     class IndexType_A,
 	     ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
@@ -1288,20 +1288,20 @@ MDSPAN_TEMPLATE_REQUIRES(
          class Triangle,
          class DiagonalStorage,
          class ElementType_y,
-         class SizeType_y,
+         class IndexType_y,
          ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, extents<SizeType_A, numRows_A, numCols_A>>)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, extents<IndexType_A, numRows_A, numCols_A>>)
 )
 void triangular_matrix_vector_product(
   linalg::impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A> , Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A> , Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
-  using size_type = std::common_type_t<SizeType_A, SizeType_y>;
+  using size_type = std::common_type_t<IndexType_A, IndexType_y>;
   constexpr bool explicitDiagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
 
@@ -1332,7 +1332,7 @@ void triangular_matrix_vector_product(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A,
+         class IndexType_A,
          ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
@@ -1340,15 +1340,15 @@ template<class ExecutionPolicy,
          class Triangle,
          class DiagonalStorage,
          class ElementType_y,
-         class SizeType_y, ::std::size_t ext_y,
+         class IndexType_y, ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y>
 void triangular_matrix_vector_product(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   constexpr bool use_custom = is_custom_tri_mat_vec_product_with_inplace_avail<
     decltype(execpolicy_mapper(exec)),
@@ -1364,7 +1364,7 @@ void triangular_matrix_vector_product(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_A,
-    	 class SizeType_A,
+    	 class IndexType_A,
     	 ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
@@ -1372,17 +1372,17 @@ MDSPAN_TEMPLATE_REQUIRES(
          class Triangle,
          class DiagonalStorage,
          class ElementType_y,
-         class SizeType_y,
+         class IndexType_y,
          ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
-         /* requires */ (impl::always_unique_mapping_v<Layout_A, extents<SizeType_A, numRows_A, numCols_A>>)
+         /* requires */ (impl::always_unique_mapping_v<Layout_A, extents<IndexType_A, numRows_A, numCols_A>>)
 )
 void triangular_matrix_vector_product(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y)
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y)
 {
   triangular_matrix_vector_product(linalg::impl::default_exec_t(), A, t, d, y);
 }

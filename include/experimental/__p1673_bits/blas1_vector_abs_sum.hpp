@@ -50,13 +50,13 @@ struct is_custom_vector_abs_sum_avail<
 } // end anonymous namespace
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 Scalar vector_abs_sum(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v,
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v,
   Scalar init)
 {
   using value_type = typename decltype(v)::value_type;
@@ -66,14 +66,14 @@ Scalar vector_abs_sum(
              impl::abs_if_needed(impl::imag_if_needed(std::declval<value_type>())));
   static_assert(std::is_convertible_v<sum_type, Scalar>);
   
-  const SizeType numElt = v.extent(0);
+  const IndexType numElt = v.extent(0);
   if constexpr (std::is_arithmetic_v<value_type>) {
-    for (SizeType i = 0; i < numElt; ++i) {
+    for (IndexType i = 0; i < numElt; ++i) {
       init += impl::abs_if_needed(v(i));
     }
   }
   else {
-    for (SizeType i = 0; i < numElt; ++i) {
+    for (IndexType i = 0; i < numElt; ++i) {
       init += impl::abs_if_needed(impl::real_if_needed(v(i)));
       init += impl::abs_if_needed(impl::imag_if_needed(v(i)));
     }
@@ -84,13 +84,13 @@ Scalar vector_abs_sum(
 
 template<class ExecutionPolicy,
          class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 Scalar vector_abs_sum(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v,
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v,
   Scalar init)
 {
   constexpr bool use_custom = is_custom_vector_abs_sum_avail<
@@ -106,12 +106,12 @@ Scalar vector_abs_sum(
 }
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor,
          class Scalar>
 Scalar vector_abs_sum(
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> v,
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> v,
   Scalar init)
 {
   return vector_abs_sum(impl::default_exec_t{}, v, init);
@@ -124,21 +124,21 @@ namespace vector_abs_detail {
   // without exposing "using std::abs" in the outer namespace.
   template<
     class ElementType,
-    class SizeType, ::std::size_t ext0,
+    class IndexType, ::std::size_t ext0,
     class Layout,
     class Accessor>
   auto vector_abs_return_type_deducer(
-    mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+    mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
   -> decltype(abs(x(0)));
 } // namespace vector_abs_detail
 
 
 template<class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
 auto vector_abs_sum(
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
 -> decltype(vector_abs_detail::vector_abs_return_type_deducer(x))
 {
   using return_t = decltype(vector_abs_detail::vector_abs_return_type_deducer(x));
@@ -147,12 +147,12 @@ auto vector_abs_sum(
 
 template<class ExecutionPolicy,
          class ElementType,
-         class SizeType, ::std::size_t ext0,
+         class IndexType, ::std::size_t ext0,
          class Layout,
          class Accessor>
 auto vector_abs_sum(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, ext0>, Layout, Accessor> x)
+  mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
 -> decltype(vector_abs_detail::vector_abs_return_type_deducer(x))
 {
   using return_t = decltype(vector_abs_detail::vector_abs_return_type_deducer(x));

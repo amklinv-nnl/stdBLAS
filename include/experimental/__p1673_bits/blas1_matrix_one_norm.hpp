@@ -55,7 +55,7 @@ struct is_custom_matrix_one_norm_avail<
 
 template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
@@ -63,12 +63,12 @@ template<
     class Scalar>
 Scalar matrix_one_norm(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   using std::abs;
   using std::max;
-  using size_type = SizeType;
+  using size_type = IndexType;
 
   // Handle special cases.
   auto result = init;
@@ -95,7 +95,7 @@ Scalar matrix_one_norm(
 template<
   class ExecutionPolicy,
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows,
   ::std::size_t numCols,
   class Layout,
@@ -103,7 +103,7 @@ template<
   class Scalar>
 Scalar matrix_one_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
 
@@ -121,14 +121,14 @@ Scalar matrix_one_norm(
 
 template<
     class ElementType,
-    class SizeType,
+    class IndexType,
     ::std::size_t numRows,
     ::std::size_t numCols,
     class Layout,
     class Accessor,
     class Scalar>
 Scalar matrix_one_norm(
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A,
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A,
   Scalar init)
 {
   return matrix_one_norm(impl::default_exec_t{}, A, init);
@@ -142,22 +142,22 @@ namespace matrix_one_norm_detail {
   using std::abs;
   template<
     class ElementType,
-    class SizeType, ::std::size_t numRows, ::std::size_t numCols,
+    class IndexType, ::std::size_t numRows, ::std::size_t numCols,
     class Layout,
     class Accessor>
   auto matrix_one_norm_return_type_deducer(
-    mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A) -> decltype(abs(A(0,0)));
+    mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A) -> decltype(abs(A(0,0)));
 
 } // namespace matrix_one_norm_detail
 
 template<
   class ElementType,
-  class SizeType,
+  class IndexType,
   ::std::size_t numRows, ::std::size_t numCols,
   class Layout,
   class Accessor>
 auto matrix_one_norm(
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A)
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A)
 -> decltype(matrix_one_norm_detail::matrix_one_norm_return_type_deducer(A))
 {
   using return_t = decltype(matrix_one_norm_detail::matrix_one_norm_return_type_deducer(A));
@@ -166,14 +166,14 @@ auto matrix_one_norm(
 
 template<class ExecutionPolicy,
          class ElementType,
-	 class SizeType,
+	 class IndexType,
          ::std::size_t numRows,
          ::std::size_t numCols,
          class Layout,
          class Accessor>
 auto matrix_one_norm(
   ExecutionPolicy&& exec,
-  mdspan<ElementType, extents<SizeType, numRows, numCols>, Layout, Accessor> A)
+  mdspan<ElementType, extents<IndexType, numRows, numCols>, Layout, Accessor> A)
 -> decltype(matrix_one_norm_detail::matrix_one_norm_return_type_deducer(A))
 {
   using return_t = decltype(matrix_one_norm_detail::matrix_one_norm_return_type_deducer(A));

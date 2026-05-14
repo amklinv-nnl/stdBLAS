@@ -102,28 +102,28 @@ struct is_custom_herm_mat_rank_2k_update_avail<
 // Rank-2k update of a symmetric matrix
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void symmetric_matrix_rank_2k_update(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle /* t */)
 {
   constexpr bool lower_tri =
     std::is_same_v<Triangle, lower_triangle_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_C>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_C>;
 
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
@@ -139,23 +139,23 @@ void symmetric_matrix_rank_2k_update(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void symmetric_matrix_rank_2k_update(
   ExecutionPolicy&& exec ,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t)
 {
   constexpr bool use_custom = is_custom_sym_mat_rank_2k_update_avail<
@@ -172,22 +172,22 @@ void symmetric_matrix_rank_2k_update(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void symmetric_matrix_rank_2k_update(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t )
 {
   symmetric_matrix_rank_2k_update(impl::default_exec_t{}, A, B, C, t);
@@ -196,33 +196,33 @@ void symmetric_matrix_rank_2k_update(
 // Rank-2k update of a symmetric matrix
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_E,
-         class SizeType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
+         class IndexType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
          class Layout_E,
          class Accessor_E,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void symmetric_matrix_rank_2k_update(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_E, extents<SizeType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_E, extents<IndexType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle /* t */)
 {
   constexpr bool lower_tri =
     std::is_same_v<Triangle, lower_triangle_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_C>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_C>;
 
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
@@ -238,28 +238,28 @@ void symmetric_matrix_rank_2k_update(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_E,
-         class SizeType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
+         class IndexType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
          class Layout_E,
          class Accessor_E,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void symmetric_matrix_rank_2k_update(
   ExecutionPolicy&& exec ,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_E, extents<SizeType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_E, extents<IndexType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t)
 {
   constexpr bool use_custom = is_custom_sym_mat_rank_2k_update_avail<
@@ -274,27 +274,27 @@ void symmetric_matrix_rank_2k_update(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_E,
-         class SizeType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
+         class IndexType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
          class Layout_E,
          class Accessor_E,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void symmetric_matrix_rank_2k_update(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_E, extents<SizeType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_E, extents<IndexType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t )
 {
   symmetric_matrix_rank_2k_update(impl::default_exec_t{}, A, B, E, C, t);
@@ -303,28 +303,28 @@ void symmetric_matrix_rank_2k_update(
 // Overwriting Rank-2k update of a Hermitian matrix
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void hermitian_matrix_rank_2k_update(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle /* t */)
 {
   constexpr bool lower_tri =
     std::is_same_v<Triangle, lower_triangle_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_C>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_C>;
 
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
@@ -340,23 +340,23 @@ void hermitian_matrix_rank_2k_update(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void hermitian_matrix_rank_2k_update(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t)
 {
   constexpr bool use_custom = is_custom_herm_mat_rank_2k_update_avail<
@@ -373,22 +373,22 @@ void hermitian_matrix_rank_2k_update(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void hermitian_matrix_rank_2k_update(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t )
 {
   hermitian_matrix_rank_2k_update(impl::default_exec_t{}, A, B, C, t);
@@ -397,33 +397,33 @@ void hermitian_matrix_rank_2k_update(
 // Rank-2k update of a Hermitian matrix
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_E,
-         class SizeType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
+         class IndexType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
          class Layout_E,
          class Accessor_E,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void hermitian_matrix_rank_2k_update(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_E, extents<SizeType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_E, extents<IndexType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle /* t */)
 {
   constexpr bool lower_tri =
     std::is_same_v<Triangle, lower_triangle_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_C>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_C>;
 
   for (size_type j = 0; j < C.extent(1); ++j) {
     const size_type i_lower = lower_tri ? j : size_type(0);
@@ -439,28 +439,28 @@ void hermitian_matrix_rank_2k_update(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_E,
-         class SizeType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
+         class IndexType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
          class Layout_E,
          class Accessor_E,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void hermitian_matrix_rank_2k_update(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_E, extents<SizeType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_E, extents<IndexType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t)
 {
   constexpr bool use_custom = is_custom_herm_mat_rank_2k_update_avail<
@@ -475,27 +475,27 @@ void hermitian_matrix_rank_2k_update(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
+         class IndexType_A, ::std::size_t numRows_A, ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class ElementType_B,
-         class SizeType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
+         class IndexType_B, ::std::size_t numRows_B, ::std::size_t numCols_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_E,
-         class SizeType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
+         class IndexType_E, ::std::size_t numRows_E, ::std::size_t numCols_E,
          class Layout_E,
          class Accessor_E,
          class ElementType_C,
-         class SizeType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
+         class IndexType_C, ::std::size_t numRows_C, ::std::size_t numCols_C,
          class Layout_C,
          class Accessor_C,
          class Triangle>
 void hermitian_matrix_rank_2k_update(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
-  mdspan<ElementType_B, extents<SizeType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_E, extents<SizeType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
-  mdspan<ElementType_C, extents<SizeType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_B, extents<IndexType_B, numRows_B, numCols_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_E, extents<IndexType_E, numRows_E, numCols_E>, Layout_E, Accessor_E> E,
+  mdspan<ElementType_C, extents<IndexType_C, numRows_C, numCols_C>, Layout_C, Accessor_C> C,
   Triangle t )
 {
   hermitian_matrix_rank_2k_update(impl::default_exec_t{}, A, B, E, C, t);

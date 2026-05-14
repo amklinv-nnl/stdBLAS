@@ -28,30 +28,30 @@ namespace linalg {
 namespace {
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X,
          class BinaryDivideOp>
 void trsv_upper_triangular_left_side(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> X,
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> X,
   BinaryDivideOp divide)
 {
   constexpr bool explicit_diagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-  using size_type = std::common_type_t<SizeType_A, SizeType_B, SizeType_X>;
+  using size_type = std::common_type_t<IndexType_A, IndexType_B, IndexType_X>;
 
   const size_type A_num_rows = A.extent(0);
   const size_type A_num_cols = A.extent(1);
@@ -79,54 +79,54 @@ void trsv_upper_triangular_left_side(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X>
 void trsv_upper_triangular_left_side(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> X)
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> X)
 {
   auto divide = [](const auto& x, const auto& y) { return x / y; };
   trsv_upper_triangular_left_side(A, d, B, X, divide);
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X,
          class BinaryDivideOp>
 void trsv_lower_triangular_left_side(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> X,
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> X,
   BinaryDivideOp divide)
 {
   constexpr bool explicit_diagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-  using size_type = std::common_type_t<SizeType_A, SizeType_B, SizeType_X>;
+  using size_type = std::common_type_t<IndexType_A, IndexType_B, IndexType_X>;
 
   const size_type A_num_rows = A.extent(0);
   const size_type A_num_cols = A.extent(1);
@@ -151,24 +151,24 @@ void trsv_lower_triangular_left_side(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X>
 void trsv_lower_triangular_left_side(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> B,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> X)
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> B,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> X)
 {
   auto divide = [](const auto& x, const auto& y) { return x / y; };
   trsv_lower_triangular_left_side(A, d, B, X, divide);
@@ -202,28 +202,28 @@ struct is_custom_tri_mat_vec_solve_avail<
 // Special case: ExecutionPolicy = inline_exec_t
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X,
          class BinaryDivideOp>
 void triangular_matrix_vector_solve(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> b,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> x,
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> b,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> x,
   BinaryDivideOp divide)
 {
   if constexpr (std::is_same_v<Triangle, lower_triangle_t>) {
@@ -235,27 +235,27 @@ void triangular_matrix_vector_solve(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X>
 void triangular_matrix_vector_solve(
   impl::inline_exec_t&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> b,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> x)
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> b,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> x)
 {
   auto divide = [](const auto& x, const auto& y) { return x / y; };
   triangular_matrix_vector_solve(std::forward<impl::inline_exec_t>(exec), A, t, d, b, x, divide);
@@ -265,28 +265,28 @@ void triangular_matrix_vector_solve(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X,
          class BinaryDivideOp>
 void triangular_matrix_vector_solve(
   ExecutionPolicy&& /* exec */,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> b,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> x,
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> b,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> x,
   BinaryDivideOp divide)
 {
   // FIXME (mfh 2022/06/13) We don't yet have a parallel version
@@ -296,27 +296,27 @@ void triangular_matrix_vector_solve(
 
 template<class ExecutionPolicy,
          class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X>
 void triangular_matrix_vector_solve(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> b,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> x)
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> b,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> x)
 {
   constexpr bool use_custom = is_custom_tri_mat_vec_solve_avail<
     decltype(impl::map_execpolicy_with_check(exec)),
@@ -335,27 +335,27 @@ void triangular_matrix_vector_solve(
 // Overloads not taking an ExecutionPolicy
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X,
          class BinaryDivideOp>
 void triangular_matrix_vector_solve(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> b,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> x,
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> b,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> x,
   BinaryDivideOp divide)
 {
   triangular_matrix_vector_solve(impl::default_exec_t{},
@@ -363,26 +363,26 @@ void triangular_matrix_vector_solve(
 }
 
 template<class ElementType_A,
-         class SizeType_A, ::std::size_t numRows_A,
+         class IndexType_A, ::std::size_t numRows_A,
          ::std::size_t numCols_A,
          class Layout_A,
          class Accessor_A,
          class Triangle,
          class DiagonalStorage,
          class ElementType_B,
-         class SizeType_B, ::std::size_t ext_B,
+         class IndexType_B, ::std::size_t ext_B,
          class Layout_B,
          class Accessor_B,
          class ElementType_X,
-         class SizeType_X, ::std::size_t ext_X,
+         class IndexType_X, ::std::size_t ext_X,
          class Layout_X,
          class Accessor_X>
 void triangular_matrix_vector_solve(
-  mdspan<ElementType_A, extents<SizeType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
+  mdspan<ElementType_A, extents<IndexType_A, numRows_A, numCols_A>, Layout_A, Accessor_A> A,
   Triangle t,
   DiagonalStorage d,
-  mdspan<ElementType_B, extents<SizeType_B, ext_B>, Layout_B, Accessor_B> b,
-  mdspan<ElementType_X, extents<SizeType_X, ext_X>, Layout_X, Accessor_X> x)
+  mdspan<ElementType_B, extents<IndexType_B, ext_B>, Layout_B, Accessor_B> b,
+  mdspan<ElementType_X, extents<IndexType_X, ext_X>, Layout_X, Accessor_X> x)
 {
   triangular_matrix_vector_solve(impl::default_exec_t{},
 				 A, t, d, b, x);

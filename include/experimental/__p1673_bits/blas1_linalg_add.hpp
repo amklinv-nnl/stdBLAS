@@ -26,24 +26,24 @@ namespace linalg {
 namespace {
 
 template<class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-	 class SizeType_z,
+	 class IndexType_z,
          ::std::size_t ext_z,
          class Layout_z,
          class Accessor_z>
 void add_rank_1(
-  mdspan<ElementType_x, extents<SizeType_x, ext_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z>, Layout_z, Accessor_z> z)
 {
   static_assert(x.static_extent(0) == dynamic_extent ||
                 z.static_extent(0) == dynamic_extent ||
@@ -55,34 +55,34 @@ void add_rank_1(
                 y.static_extent(0) == dynamic_extent ||
                 x.static_extent(0) == y.static_extent(0));
 
-  using size_type = std::common_type_t<SizeType_x, SizeType_y, SizeType_z>;
+  using size_type = std::common_type_t<IndexType_x, IndexType_y, IndexType_z>;
   for (size_type i = 0; i < z.extent(0); ++i) {
     z(i) = x(i) + y(i);
   }
 }
 
 template<class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t numRows_x,
          ::std::size_t numCols_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t numRows_y,
          ::std::size_t numCols_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-	 class SizeType_z,
+	 class IndexType_z,
          ::std::size_t numRows_z,
          ::std::size_t numCols_z,
          class Layout_z,
          class Accessor_z>
 void add_rank_2(
-  mdspan<ElementType_x, extents<SizeType_x, numRows_x, numCols_x>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, numRows_y, numCols_y>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, numRows_z, numCols_z>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, numRows_x, numCols_x>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, numRows_y, numCols_y>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, numRows_z, numCols_z>, Layout_z, Accessor_z> z)
 {
   static_assert(x.static_extent(0) == dynamic_extent ||
                 z.static_extent(0) == dynamic_extent ||
@@ -104,7 +104,7 @@ void add_rank_2(
                 y.static_extent(1) == dynamic_extent ||
                 x.static_extent(1) == y.static_extent(1));
 
-  using size_type = std::common_type_t<SizeType_x, SizeType_y, SizeType_z>;
+  using size_type = std::common_type_t<IndexType_x, IndexType_y, IndexType_z>;
   for (size_type j = 0; j < x.extent(1); ++j) {
     for (size_type i = 0; i < x.extent(0); ++i) {
       z(i,j) = x(i,j) + y(i,j);
@@ -138,17 +138,17 @@ struct is_custom_add_avail<
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ... ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ... ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-	 class SizeType_z,
+	 class IndexType_z,
          ::std::size_t ... ext_z,
          class Layout_z,
          class Accessor_z,
@@ -156,9 +156,9 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void add(
   impl::inline_exec_t&& /* exec */,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x ...>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y ...>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z ...>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x ...>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y ...>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z ...>, Layout_z, Accessor_z> z)
 {
   // this static assert is only here because for
   // the default case we support rank-1 and rank2.
@@ -175,17 +175,17 @@ void add(
 MDSPAN_TEMPLATE_REQUIRES(
          class ExecutionPolicy,
          class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ... ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ... ext_y,
          class Layout_y,
          class Accessor_y,
 	 class ElementType_z,
-	 class SizeType_z,
+	 class IndexType_z,
          ::std::size_t ... ext_z,
          class Layout_z,
          class Accessor_z,
@@ -193,9 +193,9 @@ MDSPAN_TEMPLATE_REQUIRES(
 )
 void add(
   ExecutionPolicy&& exec,
-  mdspan<ElementType_x, extents<SizeType_x, ext_x ...>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y ...>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z ...>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x ...>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y ...>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z ...>, Layout_z, Accessor_z> z)
 {
   constexpr bool use_custom = is_custom_add_avail<
     decltype(impl::map_execpolicy_with_check(exec)), decltype(x), decltype(y), decltype(z)
@@ -213,26 +213,26 @@ void add(
 
 MDSPAN_TEMPLATE_REQUIRES(
          class ElementType_x,
-	 class SizeType_x,
+	 class IndexType_x,
          ::std::size_t ... ext_x,
          class Layout_x,
          class Accessor_x,
          class ElementType_y,
-	 class SizeType_y,
+	 class IndexType_y,
          ::std::size_t ... ext_y,
          class Layout_y,
          class Accessor_y,
          class ElementType_z,
-	 class SizeType_z,
+	 class IndexType_z,
          ::std::size_t ... ext_z,
          class Layout_z,
          class Accessor_z,
          /* requires */ (sizeof...(ext_x) == sizeof...(ext_y) && sizeof...(ext_x) == sizeof...(ext_z))
 )
 void add(
-  mdspan<ElementType_x, extents<SizeType_x, ext_x ...>, Layout_x, Accessor_x> x,
-  mdspan<ElementType_y, extents<SizeType_y, ext_y ...>, Layout_y, Accessor_y> y,
-  mdspan<ElementType_z, extents<SizeType_z, ext_z ...>, Layout_z, Accessor_z> z)
+  mdspan<ElementType_x, extents<IndexType_x, ext_x ...>, Layout_x, Accessor_x> x,
+  mdspan<ElementType_y, extents<IndexType_y, ext_y ...>, Layout_y, Accessor_y> y,
+  mdspan<ElementType_z, extents<IndexType_z, ext_z ...>, Layout_z, Accessor_z> z)
 {
   add(impl::default_exec_t{}, x, y, z);
 }

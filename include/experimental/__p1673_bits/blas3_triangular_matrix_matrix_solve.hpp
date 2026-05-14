@@ -39,7 +39,7 @@ void trsm_upper_triangular_left_side(
 {
   constexpr bool explicit_diagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_X>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_X>;
 
   const size_type A_num_rows = A.extent(0);
   const size_type B_num_cols = B.extent(1);
@@ -82,7 +82,7 @@ void trsm_lower_triangular_left_side(
 {
   constexpr bool explicit_diagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_X>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_X>;
 
   const size_type A_num_rows = A.extent(0);
   const size_type B_num_cols = B.extent(1);
@@ -120,7 +120,7 @@ void trsm_upper_triangular_right_side(
 {
   constexpr bool explicit_diagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_X>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_X>;
 
   const size_type B_num_rows = B.extent(0);
   const size_type A_num_cols = A.extent(1);
@@ -156,7 +156,7 @@ void trsm_lower_triangular_right_side(
 {
   constexpr bool explicit_diagonal =
     std::is_same_v<DiagonalStorage, explicit_diagonal_t>;
-  using size_type = ::std::common_type_t<SizeType_A, SizeType_B, SizeType_X>;
+  using size_type = ::std::common_type_t<IndexType_A, IndexType_B, IndexType_X>;
   using signed_index_type = ::std::make_signed_t<size_type>;
 
   const size_type B_num_rows = B.extent(0);
