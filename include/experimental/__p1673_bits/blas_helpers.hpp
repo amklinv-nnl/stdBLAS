@@ -21,7 +21,9 @@
 #include <complex>
 #include <mdspan/mdspan.hpp>
 #include <type_traits>
+#ifdef KOKKOS_ENABLE_CBLAS
 #include "cblas.h"
+#endif
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 namespace MDSPAN_IMPL_PROPOSED_NAMESPACE {

@@ -72,6 +72,7 @@ bool try_blas_scale(
   const Scalar alpha,
   mdspan<ElementType, extents<IndexType, ext0>, Layout, Accessor> x)
 {
+  #ifdef KOKKOS_ENABLE_CBLAS
   auto n = x.extent(0);
   auto incx = x.stride(0);
   if (x.is_strided() && n <= std::numeric_limits<CBLAS_INDEX>::max()) {
@@ -103,6 +104,7 @@ bool try_blas_scale(
       }
     }
   }
+  #endif
   return false;
 }
 
