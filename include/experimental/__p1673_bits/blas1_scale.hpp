@@ -75,7 +75,7 @@ bool try_blas_scale(
   #ifdef KOKKOS_ENABLE_CBLAS
   auto n = x.extent(0);
   auto incx = x.stride(0);
-  if (x.is_strided() && n <= std::numeric_limits<CBLAS_INDEX>::max()) {
+  if (x.is_strided() && n <= std::numeric_limits<int>::max()) {
     if constexpr (std::is_same_v<ElementType, float>) {
       cblas_sscal(n, alpha, x.data_handle(), incx);
       return true;
