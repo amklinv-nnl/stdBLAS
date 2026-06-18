@@ -71,7 +71,7 @@ jobs:
       if: runner.os == 'macOS'
       working-directory: stdblas-build
       run: |
-        LLVM_PROFILE_FILE="coverage-${{ matrix.cxx-standard }}-%p.profraw" 
+        LLVM_PROFILE_FILE="tests/native/coverage-${{ matrix.cxx-standard }}-%p.profraw" 
         ctest --output-on-failure
 
     - name: Test stdblas (Linux/Windows)
