@@ -3,7 +3,7 @@ name: build/test
 on: [push, pull_request]
 
 jobs:
-  osmatrix: 
+  build-and-test: 
     strategy:
       # Don't cancel all other builds if one fails
       fail-fast: false
@@ -41,23 +41,41 @@ jobs:
       with:
         path: stdblas-src
   
-    - name: Configure stdblas
-      run: cmake -S stdblas-src -B stdblas-build -Dmdspan_DIR=mdspan-install \
-        -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} -DLINALG_ENABLE_TESTS=On \
-        -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+    - name: Configure stdblas (macOS)
+      if: runner.os == 'macOS'
+      run: cmake -S stdblas-src -B stdblas-build \
+        -Dmdspan_DIR=mdspan-install \
+        -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} \
+        -DLINALG_ENABLE_TESTS=On \
+        -DLINALG_ENABLE_EXAMPLES=On \
+        -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
         -DCMAKE_INSTALL_PREFIX=stdblas-install \
-        ${{ runner.os == 'macOS' -DLINALG_ENABLE_COVERAGE=ON' || '' }}
+        -DLINALG_ENABLE_COVERAGE=ON
+
+    - name: Configure stdblas (Linux/Windows)
+      if: runner.os != 'macOS'
+      run: cmake -S stdblas-src -B stdblas-build \
+        -Dmdspan_DIR=mdspan-install \
+        -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} \
+        -DLINALG_ENABLE_TESTS=On \
+        -DLINALG_ENABLE_EXAMPLES=On \
+        -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+        -DCMAKE_INSTALL_PREFIX=stdblas-install
 
     - name: Build stdblas
       run: cmake --build stdblas-build -j 3
 
-    - name: Test stdblas
-      working-directory: stdblas-build
-      run: ctest --output-on-failure
+    - name: Test stdblas (macOS)
       if: runner.os == 'macOS'
+      working-directory: stdblas-build
       run: |
         LLVM_PROFILE_FILE="coverage-${{ matrix.cxx-standard }}-%p.profraw" 
         ctest --output-on-failure
+
+    - name: Test stdblas (Linux/Windows)
+      if: runner.os != 'macOS'
+      working-directory: stdblas-build
+      run: ctest --output-on-failure
         
     # ---------------------------
     # Debug: ensure profraw exists (macOS only)
@@ -77,7 +95,6 @@ jobs:
 
     - name: Install stdblas
       run: cmake --install stdblas-build
-
 
   merge-and-report:
     runs-on: macos-latest
