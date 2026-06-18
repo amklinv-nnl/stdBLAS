@@ -42,7 +42,11 @@ jobs:
         path: stdblas-src
   
     - name: Configure stdblas
-      run: cmake -S stdblas-src -B stdblas-build -Dmdspan_DIR=mdspan-install -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} -DLINALG_ENABLE_TESTS=On -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DCMAKE_INSTALL_PREFIX=stdblas-install
+      run: cmake -S stdblas-src -B stdblas-build -Dmdspan_DIR=mdspan-install \
+        -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} -DLINALG_ENABLE_TESTS=On \
+        -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+        -DCMAKE_INSTALL_PREFIX=stdblas-install \
+        ${{ runner.os == 'macOS' -DLINALG_ENABLE_COVERAGE=ON' || '' }}
 
     - name: Build stdblas
       run: cmake --build stdblas-build -j 3
@@ -50,6 +54,132 @@ jobs:
     - name: Test stdblas
       working-directory: stdblas-build
       run: ctest --output-on-failure
+      if: runner.os == 'macOS'
+      run: |
+        LLVM_PROFILE_FILE="coverage-${{ matrix.cxx-standard }}-%p.profraw" 
+        ctest --output-on-failure
         
+    # ---------------------------
+    # Debug: ensure profraw exists (macOS only)
+    # ---------------------------
+    - name: Debug profraw files
+      if: runner.os == 'macOS'
+      run: |
+        echo "Searching for profraw files..."
+        find . -name "*.profraw" || true
+
+    - name: Upload raw profiles
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v4
+      with:
+        name: profraw-${{ matrix.cxx-standard }}
+        path: coverage-${{ matrix.cxx-standard }}-*.profraw
+
     - name: Install stdblas
       run: cmake --install stdblas-build
+
+
+  merge-and-report:
+    runs-on: macos-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------------------------
+      # Download all profraw artifacts (macOS only outputs exist)
+      # ---------------------------
+      - name: Download profraw artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: profraws
+
+      # ---------------------------
+      # Merge coverage profiles
+      # ---------------------------
+      - name: Merge profiles
+        run: |
+          FILES=$(find profraws -name "*.profraw")
+          if [ -z "$FILES" ]; then
+            echo "No profraw files found!"
+            exit 1
+          fi
+
+          llvm-profdata merge -sparse $FILES -o coverage.profdata
+
+      # ---------------------------
+      # Rebuild one instrumented binary (needed for llvm-cov)
+      # ---------------------------
+      - name: Rebuild (for coverage report)
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DLINALG_ENABLE_TESTS=ON \
+            -DLINALG_ENABLE_COVERAGE=ON
+
+          cmake --build build -j
+
+      # ---------------------------
+      # Collect binaries
+      # ---------------------------
+      - name: Collect binaries
+        id: binaries
+        run: |
+          BINARIES=$(find build -type f -executable \
+            ! -path "*/CMakeFiles/*" \
+            ! -path "*/_deps/*")
+
+          echo "binaries<<EOF" >> $GITHUB_OUTPUT
+          echo "$BINARIES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # ---------------------------
+      # Coverage summary
+      # ---------------------------
+      - name: Coverage summary
+        run: |
+          llvm-cov report \
+            ${{ steps.binaries.outputs.binaries }} \
+            -instr-profile=coverage.profdata \
+            -ignore-filename-regex='(tests|_deps|googletest|/usr/)'
+
+      # ---------------------------
+      # HTML report
+      # ---------------------------
+      - name: Generate HTML report
+        run: |
+          llvm-cov show \
+            ${{ steps.binaries.outputs.binaries }} \
+            -instr-profile=coverage.profdata \
+            -format=html \
+            -output-dir=coverage-report \
+            -ignore-filename-regex='(tests|_deps|googletest|/usr/)'
+
+      # ---------------------------
+      # Export LCOV for Codecov
+      # ---------------------------
+      - name: Export LCOV
+        run: |
+          llvm-cov export \
+            ${{ steps.binaries.outputs.binaries }} \
+            -instr-profile=coverage.profdata \
+            -format=lcov > coverage.info
+
+      # ---------------------------
+      # Upload HTML artifact
+      # ---------------------------
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report
+
+      # ---------------------------
+      # Upload to Codecov
+      # ---------------------------
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.info
