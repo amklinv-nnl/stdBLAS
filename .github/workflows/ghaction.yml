@@ -43,7 +43,8 @@ jobs:
   
     - name: Configure stdblas (macOS)
       if: runner.os == 'macOS'
-      run: cmake -S stdblas-src -B stdblas-build \
+      run: |
+        cmake -S stdblas-src -B stdblas-build \
         -Dmdspan_DIR=mdspan-install \
         -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} \
         -DLINALG_ENABLE_TESTS=On \
@@ -54,7 +55,8 @@ jobs:
 
     - name: Configure stdblas (Linux/Windows)
       if: runner.os != 'macOS'
-      run: cmake -S stdblas-src -B stdblas-build \
+      run: |
+        cmake -S stdblas-src -B stdblas-build \
         -Dmdspan_DIR=mdspan-install \
         -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} \
         -DLINALG_ENABLE_TESTS=On \
