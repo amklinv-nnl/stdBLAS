@@ -83,12 +83,12 @@ jobs:
         echo "Searching for profraw files..."
         find . -name "*.profraw" || true
 
-    - name: Upload raw profiles
+    - name: Upload binaries
       if: runner.os == 'macOS'
       uses: actions/upload-artifact@v4
       with:
-        name: profraw-${{ matrix.cxx-standard }}
-        path: stdblas-build/tests/native/coverage-${{ matrix.cxx-standard }}-*.profraw
+        name: binaries-${{ matrix.cxx-standard }}
+        path: stdblas-build
 
     - name: Install stdblas
       run: cmake --install stdblas-build
@@ -100,6 +100,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          path: stdblas-src
 
       - name: Install LLVM
         run: brew install llvm
@@ -113,12 +115,14 @@ jobs:
       - name: Download profraw artifacts
         uses: actions/download-artifact@v4
         with:
-          path: profraws
+          path: builds
+          pattern: binaries-*
 
       # ---------------------------
       # Merge coverage profiles
       # ---------------------------
       - name: Merge profiles
+        working-directory: builds
         run: |
           FILES=$(find profraws -name "*.profraw")
           if [ -z "$FILES" ]; then
@@ -127,21 +131,6 @@ jobs:
           fi
 
           llvm-profdata merge -sparse $FILES -o coverage.profdata
-
-      # ---------------------------
-      # Rebuild one instrumented binary (needed for llvm-cov)
-      # ---------------------------
-      - name: Rebuild (for coverage report)
-        run: |
-          cmake -S stdblas-src -B stdblas-build \
-          -DLINALG_CXX_STANDARD=20 \
-          -DLINALG_ENABLE_TESTS=On \
-          -DLINALG_ENABLE_EXAMPLES=On \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_INSTALL_PREFIX=stdblas-install \
-          -DLINALG_ENABLE_COVERAGE=ON
-
-          cmake --build build -j
 
       # ---------------------------
       # Collect binaries
@@ -165,7 +154,7 @@ jobs:
           llvm-cov report \
             ${{ steps.binaries.outputs.binaries }} \
             -instr-profile=coverage.profdata \
-            -ignore-filename-regex='(tests|_deps|googletest|/usr/)'
+            -instruction-filter='.*include/.*'
 
       # ---------------------------
       # HTML report
@@ -177,7 +166,7 @@ jobs:
             -instr-profile=coverage.profdata \
             -format=html \
             -output-dir=coverage-report \
-            -ignore-filename-regex='(tests|_deps|googletest|/usr/)'
+            -instruction-filter='.*include/.*'
 
       # ---------------------------
       # Export LCOV for Codecov
@@ -187,6 +176,7 @@ jobs:
           llvm-cov export \
             ${{ steps.binaries.outputs.binaries }} \
             -instr-profile=coverage.profdata \
+            -instruction-filter='.*include/.*' \
             -format=lcov > coverage.info
 
       # ---------------------------
