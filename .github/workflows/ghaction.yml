@@ -156,6 +156,13 @@ jobs:
 
           wc -l $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov
 
+          llvm-profdata show \
+            "$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata" | head -50
+
+          for bin in "${BINS[@]}"; do
+            llvm-cov report "${bin}" -instr-profile="$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata"
+          done
+
       # ---------------------------
       # Upload LCOV artifact
       # ---------------------------
