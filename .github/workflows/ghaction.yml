@@ -140,16 +140,18 @@ jobs:
           BINARIES=$(find builds -type f -perm +111 \
             ! -path "*/CMakeFiles/*" \
             ! -path "*/_deps/*")
-
+          ls
           echo "binaries<<EOF" >> $GITHUB_OUTPUT
           echo "$BINARIES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          echo "BINARIES=$BINARIES"
 
       # ---------------------------
       # Coverage summary
       # ---------------------------
       - name: Coverage summary
         run: |
+          echo "binaries=${{ steps.binaries.outputs.binaries }}"
           llvm-cov report \
             ${{ steps.binaries.outputs.binaries }} \
             -instr-profile=coverage.profdata
