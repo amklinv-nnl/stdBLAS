@@ -53,16 +53,10 @@ jobs:
         -DCMAKE_INSTALL_PREFIX=stdblas-install \
         -DLINALG_ENABLE_COVERAGE=ON
 
+    # AMK 6/18/26: I couldn't find a cross platform way to split the string
     - name: Configure stdblas (Linux/Windows)
       if: runner.os != 'macOS'
-      run: |
-        cmake -S stdblas-src -B stdblas-build \
-        -Dmdspan_DIR=mdspan-install \
-        -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} \
-        -DLINALG_ENABLE_TESTS=On \
-        -DLINALG_ENABLE_EXAMPLES=On \
-        -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-        -DCMAKE_INSTALL_PREFIX=stdblas-install
+      run: cmake -S stdblas-src -B stdblas-build -Dmdspan_DIR=mdspan-install -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} -DLINALG_ENABLE_TESTS=On -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DCMAKE_INSTALL_PREFIX=stdblas-install
 
     - name: Build stdblas
       run: cmake --build stdblas-build -j 3
@@ -203,3 +197,4 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: coverage.info
+          token: ${{ secrets.CODECOV_TOKEN }}
