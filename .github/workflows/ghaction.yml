@@ -172,8 +172,8 @@ jobs:
       # ---------------------------
       - name: Coverage summary
         run: |
-          $LLVM_PREFIX/bin/llvm-cov report \
-            ${{ steps.binaries.outputs.binaries }} \
+          echo "${{ steps.binaries.outputs.binaries }}" | xargs \
+            $LLVM_PREFIX/bin/llvm-cov report \
             -instr-profile=coverage.profdata \
             -ignore-filename-regex='^(?!.*\/include\/).*'
 
@@ -182,8 +182,8 @@ jobs:
       # ---------------------------
       - name: Generate HTML report
         run: |
-          $LLVM_PREFIX/bin/llvm-cov show \
-            ${{ steps.binaries.outputs.binaries }} \
+          echo "${{ steps.binaries.outputs.binaries }}" | xargs \
+            $LLVM_PREFIX/bin/llvm-cov show \
             -instr-profile=coverage.profdata \
             -format=html \
             -output-dir=coverage-report \
@@ -194,11 +194,12 @@ jobs:
       # ---------------------------
       - name: Export LCOV
         run: |
-          $LLVM_PREFIX/bin/llvm-cov export \
-            ${{ steps.binaries.outputs.binaries }} \
+          echo "${{ steps.binaries.outputs.binaries }}" | xargs \
+            $LLVM_PREFIX/bin/llvm-cov export \
             -instr-profile=coverage.profdata \
             -format=lcov \
-            -ignore-filename-regex='^(?!.*\/include\/).*' > coverage.info
+            -ignore-filename-regex='^(?!.*\/include\/).*' \
+            > coverage.info
 
       # ---------------------------
       # Upload report
