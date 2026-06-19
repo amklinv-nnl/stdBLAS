@@ -174,4 +174,6 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: .coverage/cxx${{ matrix.cxx_std }}.lcov
+          flags: cxx${{ matrix.cxx_std }}
+          name: cxx${{ matrix.cxx_std }}
           token: ${{ secrets.CODECOV_TOKEN }}
