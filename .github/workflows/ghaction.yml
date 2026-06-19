@@ -133,11 +133,13 @@ jobs:
       # ---------------------------
       - name: Rebuild (for coverage report)
         run: |
-          cmake -B build \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_CXX_COMPILER=clang++ \
-            -DLINALG_ENABLE_TESTS=ON \
-            -DLINALG_ENABLE_COVERAGE=ON
+          cmake -S stdblas-src -B stdblas-build \
+          -DLINALG_CXX_STANDARD=20 \
+          -DLINALG_ENABLE_TESTS=On \
+          -DLINALG_ENABLE_EXAMPLES=On \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_INSTALL_PREFIX=stdblas-install \
+          -DLINALG_ENABLE_COVERAGE=ON
 
           cmake --build build -j
 
