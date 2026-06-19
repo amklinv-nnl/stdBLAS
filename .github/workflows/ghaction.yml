@@ -122,9 +122,8 @@ jobs:
       # Merge coverage profiles
       # ---------------------------
       - name: Merge profiles
-        working-directory: builds
         run: |
-          FILES=$(find . -name "*.profraw")
+          FILES=$(find builds -name "*.profraw")
           if [ -z "$FILES" ]; then
             echo "No profraw files found!"
             exit 1
