@@ -172,9 +172,12 @@ jobs:
       # ---------------------------
       - name: Coverage summary
         run: |
-          echo "${{ steps.binaries.outputs.binaries }}" | xargs \
-            $LLVM_PREFIX/bin/llvm-cov report \
+          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
+      
+          $LLVM_PREFIX/bin/llvm-cov report \
+            $BINARIES \
             -instr-profile=coverage.profdata \
+            -path-equivalence="$GITHUB_WORKSPACE,$GITHUB_WORKSPACE" \
             -ignore-filename-regex='^(?!.*\/include\/).*'
 
       # ---------------------------
@@ -182,11 +185,14 @@ jobs:
       # ---------------------------
       - name: Generate HTML report
         run: |
-          echo "${{ steps.binaries.outputs.binaries }}" | xargs \
-            $LLVM_PREFIX/bin/llvm-cov show \
+          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
+      
+          $LLVM_PREFIX/bin/llvm-cov show \
+            $BINARIES \
             -instr-profile=coverage.profdata \
             -format=html \
             -output-dir=coverage-report \
+            -path-equivalence="$GITHUB_WORKSPACE,$GITHUB_WORKSPACE" \
             -ignore-filename-regex='^(?!.*\/include\/).*'
 
       # ---------------------------
@@ -194,10 +200,13 @@ jobs:
       # ---------------------------
       - name: Export LCOV
         run: |
-          echo "${{ steps.binaries.outputs.binaries }}" | xargs \
-            $LLVM_PREFIX/bin/llvm-cov export \
+          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
+      
+          $LLVM_PREFIX/bin/llvm-cov export \
+            $BINARIES \
             -instr-profile=coverage.profdata \
             -format=lcov \
+            -path-equivalence="$GITHUB_WORKSPACE,$GITHUB_WORKSPACE" \
             -ignore-filename-regex='^(?!.*\/include\/).*' \
             > coverage.info
 
