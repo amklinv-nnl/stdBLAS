@@ -101,6 +101,29 @@ endif()
 
 ################################################################################
 
+include(CheckCXXSourceCompiles)
+
+check_cxx_source_compiles("
+#include <execution>
+#include <algorithm>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1,2,3};
+    std::for_each(std::execution::par, v.begin(), v.end(),
+                  [](int&) {});
+    return 0;
+}
+" STD_EXECUTION_PAR_SUPPORTED)
+
+if(STD_EXECUTION_PAR_SUPPORTED)
+    message(STATUS "std::execution::par is supported")
+else()
+    message(STATUS "std::execution::par is NOT supported")
+endif()
+
+################################################################################
+
 find_package(mdspan QUIET)
 if (NOT mdspan_FOUND)
   message(STATUS "No installed mdspan found, fetching from Github")
@@ -155,6 +178,12 @@ target_link_libraries(linalg INTERFACE mdspan)
 
 if(LINALG_ENABLE_TBB)
   target_link_libraries(linalg INTERFACE TBB::tbb)
+endif()
+
+if(STD_EXECUTION_PAR_SUPPORTED)
+    target_compile_definitions(linalg INTERFACE HAVE_STD_EXEC_PAR=1)
+else()
+    target_compile_definitions(linalg INTERFACE HAVE_STD_EXEC_PAR=0)
 endif()
 
 if(LINALG_ENABLE_KOKKOS)

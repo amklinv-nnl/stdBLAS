@@ -44,9 +44,11 @@ TEST(gemv, no_ambiguity)
        scaled(0.5, y), y);
 
 #ifdef LINALG_HAS_EXECUTION
+#if HAVE_STD_EXEC_PAR
     matrix_vector_product(std::execution::par,
        scaled(2.0, A), x,
        scaled(0.5, y), y);
+#endif
 #endif
   }
 }
