@@ -101,6 +101,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install LLVM
+        run: sudo apt-get update && sudo apt-get install -y clang llvm
+
       # ---------------------------
       # Download all profraw artifacts (macOS only outputs exist)
       # ---------------------------
