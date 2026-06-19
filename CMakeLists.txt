@@ -236,6 +236,11 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LinAlgConfig.cmake ${CMAKE_CURRENT_BIN
 
 ################################################################################
 
+set(COVERAGE_BINARIES_FILE "${CMAKE_BINARY_DIR}/coverage_binaries.txt")
+
+# Reset file at configure time
+file(WRITE ${COVERAGE_BINARIES_FILE} "")
+
 if(LINALG_ENABLE_COVERAGE)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Enabling Clang source-based coverage")
@@ -248,6 +253,15 @@ if(LINALG_ENABLE_COVERAGE)
     message(FATAL_ERROR "LINALG_ENABLE_COVERAGE requires Clang")
   endif()
 endif()
+
+function(register_gtest_coverage target)
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "$<TARGET_FILE:${target}>" >> ${COVERAGE_BINARIES_FILE}
+    COMMENT "Registering ${target} for coverage"
+  )
+endfunction()
+
+################################################################################
 
 if(LINALG_ENABLE_TESTS)
   enable_testing()

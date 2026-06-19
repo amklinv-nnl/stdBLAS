@@ -106,11 +106,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          ctest --test-dir build -N -V \
-            | grep "Test command:" \
-            | sed 's/.*Test command: //' \
-            | awk '{print $1}' \
-            | sort -u > $COVERAGE_ROOT/binaries.txt
+          cp build/coverage_binaries.txt $COVERAGE_ROOT/binaries.txt
 
       - name: Validate binaries
         if: runner.os == 'macOS'
@@ -127,17 +123,20 @@ jobs:
           done < $COVERAGE_ROOT/binaries.txt
       
       # ---------------------------
-      # Generate LCOV (Codecov)
+      # Generate LCOV (CORRECT)
       # ---------------------------
       - name: Generate LCOV
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          mapfile -t BINS < "$COVERAGE_ROOT/binaries.txt"
-      
+          BINS=()
+          while IFS= read -r line; do
+            [ -n "$line" ] && BINS+=("$line")
+          done < "$COVERAGE_ROOT/binaries.txt"
+
           echo "Using binaries:"
           printf '%s\n' "${BINS[@]}"
-      
+
           $LLVM_PREFIX/bin/llvm-cov export \
             "${BINS[@]}" \
             -instr-profile="$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata" \
