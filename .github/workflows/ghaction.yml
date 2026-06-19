@@ -1,44 +1,51 @@
-name: Unified C++ Coverage (17 + 20)
+name: LLVM Coverage (Bulletproof Unified)
 
 on:
   pull_request:
   push:
     branches: [main, master]
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   coverage:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         cxx_std: [17, 20]
+
+    env:
+      COVERAGE_ROOT: ${{ github.workspace }}/.coverage
 
     steps:
       - uses: actions/checkout@v4
 
       # ---------------------------
-      # LLVM setup
+      # Install LLVM
       # ---------------------------
-      - name: Install LLVM
+      - name: Install LLVM (macOS)
+        if: runner.os == 'macOS'
         run: brew install llvm
 
-      - name: Set LLVM env
+      - name: Set LLVM env (macOS)
+        if: runner.os == 'macOS'
         run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
+
+      # Windows LLVM setup (if needed)
+      - name: Setup LLVM (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install llvm -y
 
       # ---------------------------
       # Configure
       # ---------------------------
       - name: Configure
         run: |
-          cmake -B build-${{ matrix.cxx_std }} \
+          cmake -B build \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} \
-            -DCMAKE_CXX_COMPILER=clang++ \
             -DLINALG_ENABLE_TESTS=ON \
             -DLINALG_ENABLE_COVERAGE=ON
 
@@ -46,80 +53,78 @@ jobs:
       # Build
       # ---------------------------
       - name: Build
-        run: cmake --build build-${{ matrix.cxx_std }} -j
+        run: cmake --build build -j
 
       # ---------------------------
-      # Run tests (generate profraw)
+      # Prepare coverage directory (CRITICAL)
       # ---------------------------
-      - name: Run tests
+      - name: Setup coverage root
         run: |
-          LLVM_PROFILE_FILE="cxx${{ matrix.cxx_std }}-%p.profraw" \
-          ctest --test-dir build-${{ matrix.cxx_std }} --output-on-failure
+          mkdir -p $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}
+
+      # ---------------------------
+      # Run tests (OS-safe profraw path)
+      # ---------------------------
+      - name: Run tests with coverage
+        shell: bash
+        run: |
+          export LLVM_PROFILE_FILE="$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}/%p.profraw"
+
+          ctest --test-dir build --output-on-failure
+
+      # ---------------------------
+      # Debug (always useful)
+      # ---------------------------
+      - name: Debug profraw output
+        run: |
+          find .coverage -name "*.profraw" -print || true
 
       # ---------------------------
       # Merge profraw → profdata
       # ---------------------------
-      - name: Merge coverage data
+      - name: Merge coverage
         run: |
-          $LLVM_PREFIX/bin/llvm-profdata merge \
-            -sparse cxx${{ matrix.cxx_std }}-*.profraw \
-            -o cxx${{ matrix.cxx_std }}.profdata
+          $LLVM_PREFIX/bin/llvm-profdata merge -sparse \
+            $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}/*.profraw \
+            -o $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata
 
       # ---------------------------
-      # Generate LCOV (Codecov input)
+      # Select binaries (NO assumptions)
+      # ---------------------------
+      - name: Locate binaries
+        shell: bash
+        run: |
+          find build -type f -perm +111 > $COVERAGE_ROOT/binaries.txt
+
+      # ---------------------------
+      # Generate LCOV (Codecov)
       # ---------------------------
       - name: Generate LCOV
+        shell: bash
         run: |
-          BIN=$(find build-${{ matrix.cxx_std }} -type f -perm +111 | head -n 1)
+          BIN=$(head -n 1 $COVERAGE_ROOT/binaries.txt)
 
           $LLVM_PREFIX/bin/llvm-cov export \
             $BIN \
-            -instr-profile=cxx${{ matrix.cxx_std }}.profdata \
-            --format=lcov > cxx${{ matrix.cxx_std }}.lcov
+            -instr-profile=$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata \
+            --format=lcov > \
+            $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov
 
       # ---------------------------
-      # Upload LCOV artifact (for Pages job)
+      # Upload LCOV artifact
       # ---------------------------
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.cxx_std }}
-          path: |
-            cxx${{ matrix.cxx_std }}.lcov
+          name: coverage-${{ matrix.os }}-${{ matrix.cxx_std }}
+          path: .coverage
 
       # ---------------------------
-      # Codecov upload (UNIFIED INPUT)
+      # Codecov
       # ---------------------------
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: cxx${{ matrix.cxx_std }}.lcov
+          files: .coverage/cxx${{ matrix.cxx_std }}.lcov
           use_oidc: true
           fail_ci_if_error: true
-
-
-  # -------------------------------------------------------
-  # OPTIONAL: merge artifacts for GitHub Pages dashboard
-  # -------------------------------------------------------
-  pages-data:
-    needs: coverage
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download LCOV artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: lcov
-
-      - name: Prepare dashboard artifact
-        run: |
-          mkdir -p coverage-dashboard
-          cp lcov/**/cxx*.lcov coverage-dashboard/coverage.lcov
-
-      - name: Upload dashboard artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-dashboard
-          path: coverage-dashboard
