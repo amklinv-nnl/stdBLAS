@@ -104,6 +104,9 @@ jobs:
       - name: Install LLVM
         run: brew install llvm
 
+      - name: Set LLVM PATH (macOS)
+        run: echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+
       # ---------------------------
       # Download all profraw artifacts (macOS only outputs exist)
       # ---------------------------
