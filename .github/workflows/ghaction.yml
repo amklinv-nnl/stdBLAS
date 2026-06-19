@@ -1,135 +1,153 @@
-name: build/test
+name: Build + Coverage
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches: [main, master]
 
 jobs:
-  build-and-test: 
-    strategy:
-      # Don't cancel all other builds if one fails
-      fail-fast: false
-      matrix:
-        # A full list of runners can be found here: 
-        # https://docs.github.com/en/actions/reference/runners/github-hosted-runners
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        build-type: [RelWithDebInfo]
-        cxx-standard: [17,20]
-        # In theory, we would test on older compilers such as gcc 7.5, clang 9, and vs 2019
-        # They are not installed on the runners by default, leaving this as a TODO item for now.
+  build:
     runs-on: ${{ matrix.os }}
 
-    steps:
-    - name: Check Out mdspan
-      uses: actions/checkout@v4
-      with:
-        repository: kokkos/mdspan
-        path: mdspan-src
-
-    - name: create directories
-      run: cmake -E make_directory mdspan-build stdblas-build
-
-    - name: Configure mdspan
-      run: cmake -S mdspan-src -B mdspan-build -DMDSPAN_CXX_STANDARD=${{matrix.cxx-standard}} -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DCMAKE_INSTALL_PREFIX=mdspan-install
-
-    - name: Build mdspan
-      run: cmake --build mdspan-build -j 3
-
-    - name: Install mdspan
-      run: cmake --install mdspan-build
-
-    - name: Check Out stdblas
-      uses: actions/checkout@v4
-      with:
-        path: stdblas-src
-  
-    - name: Configure stdblas (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        cmake -S stdblas-src -B stdblas-build \
-        -Dmdspan_DIR=mdspan-install \
-        -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} \
-        -DLINALG_ENABLE_TESTS=On \
-        -DLINALG_ENABLE_EXAMPLES=On \
-        -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-        -DCMAKE_INSTALL_PREFIX=stdblas-install \
-        -DLINALG_ENABLE_COVERAGE=ON
-
-    # AMK 6/18/26: I couldn't find a cross platform way to split the string
-    - name: Configure stdblas (Linux/Windows)
-      if: runner.os != 'macOS'
-      run: cmake -S stdblas-src -B stdblas-build -Dmdspan_DIR=mdspan-install -DLINALG_CXX_STANDARD=${{matrix.cxx-standard}} -DLINALG_ENABLE_TESTS=On -DLINALG_ENABLE_EXAMPLES=On -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DCMAKE_INSTALL_PREFIX=stdblas-install
-
-    - name: Build stdblas
-      run: cmake --build stdblas-build -j 3
-
-    - name: Test stdblas (macOS)
-      if: runner.os == 'macOS'
-      working-directory: stdblas-build
-      run: |
-        export LLVM_PROFILE_FILE="coverage-${{ matrix.cxx-standard }}-%p.profraw" 
-        ctest --output-on-failure
-
-    - name: Test stdblas (Linux/Windows)
-      if: runner.os != 'macOS'
-      working-directory: stdblas-build
-      run: ctest --output-on-failure
-        
-    # ---------------------------
-    # Debug: ensure profraw exists (macOS only)
-    # ---------------------------
-    - name: Debug profraw files
-      if: runner.os == 'macOS'
-      working-directory: stdblas-build
-      run: |
-        echo "Searching for profraw files..."
-        find . -name "*.profraw" || true
-
-    - name: Upload binaries
-      if: runner.os == 'macOS'
-      uses: actions/upload-artifact@v4
-      with:
-        name: binaries-${{ matrix.cxx-standard }}
-        path: stdblas-build
-
-    - name: Install stdblas
-      run: cmake --install stdblas-build
-
-  merge-and-report:
-    runs-on: macos-latest
-    needs: build-and-test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        cxx_std: [17, 20]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # ---------------------------
+      # macOS: install LLVM
+      # ---------------------------
+      - name: Install LLVM (macOS)
+        if: runner.os == 'macOS'
+        run: brew install llvm
+
+      - name: Set LLVM env (macOS)
+        if: runner.os == 'macOS'
+        run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
+
+      # ---------------------------
+      # Configure
+      # ---------------------------
+      - name: Configure (macOS coverage)
+        if: runner.os == 'macOS'
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} -DCMAKE_CXX_COMPILER=clang++ -DLINALG_ENABLE_TESTS=ON -DLINALG_ENABLE_COVERAGE=ON
+
+      - name: Configure (others)
+        if: runner.os != 'macOS'
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} -DLINALG_ENABLE_TESTS=ON
+
+      # ---------------------------
+      # Build
+      # ---------------------------
+      - name: Build
+        run: cmake --build build -j
+
+      # ---------------------------
+      # Run tests
+      # ---------------------------
+      - name: Run tests (coverage)
+        if: runner.os == 'macOS'
+        run: |
+          export LLVM_PROFILE_FILE="coverage-${{ matrix.cxx_std }}-%p.profraw"
+          ctest --test-dir build --output-on-failure
+
+      - name: Run tests (normal)
+        if: runner.os != 'macOS'
+        run: ctest --test-dir build --output-on-failure
+
+      # ---------------------------
+      # Collect minimal coverage artifacts
+      # ---------------------------
+      - name: Collect coverage artifacts (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p coverage_artifacts/bin
+          mkdir -p coverage_artifacts/lib
+
+          # Extract test binaries deterministically
+          ctest --test-dir build -N -V 2>/dev/null \
+            | grep "Test command:" \
+            | sed 's/.*Test command: //' \
+            | awk '{print $1}' > coverage_artifacts/test_binaries.txt
+
+          # Copy test executables
+          while read bin; do
+            if [ -f "$bin" ]; then
+              cp "$bin" coverage_artifacts/bin/
+            fi
+          done < coverage_artifacts/test_binaries.txt
+
+          # Copy dependent shared libraries (non-system)
+          for bin in coverage_artifacts/bin/*; do
+            otool -L "$bin" | awk '{print $1}' | grep -v "^/usr/lib" | while read lib; do
+              if [ -f "$lib" ]; then
+                cp -n "$lib" coverage_artifacts/lib/ || true
+              fi
+            done
+          done
+
+      # ---------------------------
+      # Upload minimal artifacts
+      # ---------------------------
+      - name: Upload coverage artifacts
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
         with:
-          path: stdblas-src
+          name: coverage-${{ matrix.cxx_std }}
+          path: |
+            coverage-${{ matrix.cxx_std }}-*.profraw
+            coverage_artifacts/
+
+
+  merge:
+    runs-on: macos-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install LLVM
         run: brew install llvm
 
-      - name: Set LLVM PATH (macOS)
-        run: echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+      - name: Set LLVM env
+        run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
 
       # ---------------------------
-      # Download all profraw artifacts (macOS only outputs exist)
+      # Download artifacts
       # ---------------------------
-      - name: Download profraw artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: builds
-          pattern: binaries-*
+          path: artifacts
 
       # ---------------------------
-      # Merge coverage profiles
+      # Merge profiles
       # ---------------------------
       - name: Merge profiles
         run: |
-          FILES=$(find builds -name "*.profraw")
+          FILES=$(find artifacts -name "*.profraw")
           if [ -z "$FILES" ]; then
             echo "No profraw files found!"
             exit 1
           fi
 
-          llvm-profdata merge -sparse $FILES -o coverage.profdata
+          $LLVM_PREFIX/bin/llvm-profdata merge \
+            -sparse $FILES \
+            -o coverage.profdata
+
+      # ---------------------------
+      # Fix library paths
+      # ---------------------------
+      - name: Set DYLD_LIBRARY_PATH
+        run: |
+          export DYLD_LIBRARY_PATH=$(find artifacts -type d -name lib | paste -sd :)
+          echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
       # ---------------------------
       # Collect binaries
@@ -137,50 +155,47 @@ jobs:
       - name: Collect binaries
         id: binaries
         run: |
-          BINARIES=$(find builds -type f -perm +111 \
-            ! -path "*/CMakeFiles/*" \
-            ! -path "*/_deps/*")
-          ls
+          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
+
           echo "binaries<<EOF" >> $GITHUB_OUTPUT
           echo "$BINARIES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          echo "BINARIES=$BINARIES"
 
       # ---------------------------
-      # Coverage summary
+      # Coverage summary (include-only)
       # ---------------------------
       - name: Coverage summary
         run: |
-          echo "binaries=${{ steps.binaries.outputs.binaries }}"
-          llvm-cov report \
+          $LLVM_PREFIX/bin/llvm-cov report \
             ${{ steps.binaries.outputs.binaries }} \
-            -instr-profile=coverage.profdata
+            -instr-profile=coverage.profdata \
+            -ignore-filename-regex='^(?!.*\/include\/).*'
 
       # ---------------------------
-      # HTML report
+      # HTML report (include-only)
       # ---------------------------
       - name: Generate HTML report
         run: |
-          llvm-cov show \
+          $LLVM_PREFIX/bin/llvm-cov show \
             ${{ steps.binaries.outputs.binaries }} \
             -instr-profile=coverage.profdata \
             -format=html \
             -output-dir=coverage-report \
-            -instruction-filter='.*include/.*'
+            -ignore-filename-regex='^(?!.*\/include\/).*'
 
       # ---------------------------
-      # Export LCOV for Codecov
+      # Export LCOV (include-only)
       # ---------------------------
       - name: Export LCOV
         run: |
-          llvm-cov export \
+          $LLVM_PREFIX/bin/llvm-cov export \
             ${{ steps.binaries.outputs.binaries }} \
             -instr-profile=coverage.profdata \
-            -instruction-filter='.*include/.*' \
-            -format=lcov > coverage.info
+            -format=lcov \
+            -ignore-filename-regex='^(?!.*\/include\/).*' > coverage.info
 
       # ---------------------------
-      # Upload HTML artifact
+      # Upload report
       # ---------------------------
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
@@ -188,11 +203,7 @@ jobs:
           name: coverage-report
           path: coverage-report
 
-      # ---------------------------
-      # Upload to Codecov
-      # ---------------------------
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: coverage.info
-          token: ${{ secrets.CODECOV_TOKEN }}
