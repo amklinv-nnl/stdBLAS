@@ -106,7 +106,7 @@ jobs:
         with:
           name: coverage-${{ matrix.cxx_std }}
           path: |
-            coverage-${{ matrix.cxx_std }}-*.profraw
+            **/*.profraw
             coverage_artifacts/
 
 
