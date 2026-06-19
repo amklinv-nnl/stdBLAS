@@ -129,14 +129,14 @@ jobs:
       # ---------------------------
       # Generate LCOV (Codecov)
       # ---------------------------
-      - name: Generate LCOV (fixed)
+      - name: Generate LCOV
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          $LLVM_PREFIX/bin/llvm-cov show \
+          $LLVM_PREFIX/bin/llvm-cov export \
             build \
             -instr-profile=$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata \
-            -format=lcov > \
+            --format=lcov > \
             $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov
 
       # ---------------------------
