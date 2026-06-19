@@ -153,8 +153,7 @@ jobs:
         run: |
           llvm-cov report \
             ${{ steps.binaries.outputs.binaries }} \
-            -instr-profile=coverage.profdata \
-            -instruction-filter='.*include/.*'
+            -instr-profile=coverage.profdata
 
       # ---------------------------
       # HTML report
