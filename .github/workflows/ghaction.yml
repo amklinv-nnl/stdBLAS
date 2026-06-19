@@ -138,7 +138,7 @@ jobs:
       - name: Collect binaries
         id: binaries
         run: |
-          BINARIES=$(find build -type f -executable \
+          BINARIES=$(find builds -type f -perm +111 \
             ! -path "*/CMakeFiles/*" \
             ! -path "*/_deps/*")
 
