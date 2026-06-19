@@ -102,7 +102,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install LLVM
-        run: sudo apt-get update && sudo apt-get install -y clang llvm
+        run: brew install llvm
 
       # ---------------------------
       # Download all profraw artifacts (macOS only outputs exist)
