@@ -5,6 +5,10 @@ on:
   push:
     branches: [main, master]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -16,91 +20,85 @@ jobs:
         cxx_std: [17, 20]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       # ---------------------------
-      # macOS: install LLVM
+      # macOS: LLVM
       # ---------------------------
       - name: Install LLVM (macOS)
         if: runner.os == 'macOS'
         run: brew install llvm
 
-      - name: Set LLVM env (macOS)
+      - name: Set LLVM env
         if: runner.os == 'macOS'
         run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
 
       # ---------------------------
       # Configure
       # ---------------------------
-      - name: Configure (macOS coverage)
+      - name: Configure (coverage)
         if: runner.os == 'macOS'
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} -DCMAKE_CXX_COMPILER=clang++ -DLINALG_ENABLE_TESTS=ON -DLINALG_ENABLE_COVERAGE=ON
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }}
+          -DCMAKE_CXX_COMPILER=clang++
+          -DLINALG_ENABLE_TESTS=ON
+          -DLINALG_ENABLE_COVERAGE=ON
 
-      - name: Configure (others)
+      - name: Configure (normal)
         if: runner.os != 'macOS'
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} -DLINALG_ENABLE_TESTS=ON
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }}
+          -DLINALG_ENABLE_TESTS=ON
 
       # ---------------------------
-      # Build
+      # Build + Test
       # ---------------------------
       - name: Build
         run: cmake --build build -j
 
-      # ---------------------------
-      # Run tests
-      # ---------------------------
       - name: Run tests (coverage)
         if: runner.os == 'macOS'
         run: |
-          export LLVM_PROFILE_FILE="coverage-${{ matrix.cxx_std }}-%p.profraw"
+          LLVM_PROFILE_FILE="coverage-${{ matrix.cxx_std }}-%p.profraw" \
           ctest --test-dir build --output-on-failure
 
-      - name: Run tests (normal)
+      - name: Run tests
         if: runner.os != 'macOS'
         run: ctest --test-dir build --output-on-failure
 
-      - name: Debug profraw files (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          echo "Looking for profraw files..."
-          find . -name "*.profraw" || true
-
       # ---------------------------
-      # Collect minimal coverage artifacts
+      # Collect artifacts (macOS only)
       # ---------------------------
-      - name: Collect coverage artifacts (macOS)
+      - name: Collect coverage artifacts
         if: runner.os == 'macOS'
         run: |
           mkdir -p coverage_artifacts/bin
           mkdir -p coverage_artifacts/lib
 
-          # Extract test binaries deterministically
+          # Get test binaries
           ctest --test-dir build -N -V 2>/dev/null \
             | grep "Test command:" \
             | sed 's/.*Test command: //' \
             | awk '{print $1}' > coverage_artifacts/test_binaries.txt
 
-          # Copy test executables
           while read bin; do
             if [ -f "$bin" ]; then
               cp "$bin" coverage_artifacts/bin/
             fi
           done < coverage_artifacts/test_binaries.txt
 
-          # Copy dependent shared libraries (non-system)
+          # Copy shared libs
           for bin in coverage_artifacts/bin/*; do
             otool -L "$bin" | awk '{print $1}' | grep -v "^/usr/lib" | while read lib; do
-              if [ -f "$lib" ]; then
-                cp -n "$lib" coverage_artifacts/lib/ || true
-              fi
+              [ -f "$lib" ] && cp -n "$lib" coverage_artifacts/lib/ || true
             done
           done
 
-      # ---------------------------
-      # Upload minimal artifacts
-      # ---------------------------
-      - name: Upload coverage artifacts
+      - name: Upload artifacts
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
@@ -109,14 +107,12 @@ jobs:
             **/*.profraw
             coverage_artifacts/
 
-
-  merge:
+  coverage:
     runs-on: macos-latest
     needs: build
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install LLVM
         run: brew install llvm
@@ -124,103 +120,71 @@ jobs:
       - name: Set LLVM env
         run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
 
-      # ---------------------------
-      # Download artifacts
-      # ---------------------------
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      # ---------------------------
-      # Merge profiles
-      # ---------------------------
-      - name: Merge profiles
-        run: |
-          FILES=$(find artifacts -name "*.profraw")
-          if [ -z "$FILES" ]; then
-            echo "No profraw files found!"
-            exit 1
-          fi
-
-          $LLVM_PREFIX/bin/llvm-profdata merge \
-            -sparse $FILES \
-            -o coverage.profdata
-
-      # ---------------------------
-      # Fix library paths
-      # ---------------------------
-      - name: Set DYLD_LIBRARY_PATH
+      - name: Set library path
         run: |
           export DYLD_LIBRARY_PATH=$(find artifacts -type d -name lib | paste -sd :)
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
       # ---------------------------
-      # Collect binaries
+      # Generate per-standard reports
       # ---------------------------
-      - name: Collect binaries
-        id: binaries
+      - name: Generate reports
         run: |
-          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
+          mkdir -p coverage/cxx17
+          mkdir -p coverage/cxx20
 
-          echo "binaries<<EOF" >> $GITHUB_OUTPUT
-          echo "$BINARIES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          for STD in 17 20; do
+            echo "Processing C++$STD..."
+
+            FILES=$(find artifacts/coverage-$STD -name "*.profraw")
+            BINARIES=$(find artifacts/coverage-$STD -path "*/coverage_artifacts/bin/*" -type f)
+
+            $LLVM_PREFIX/bin/llvm-profdata merge -sparse $FILES -o coverage-$STD.profdata
+
+            $LLVM_PREFIX/bin/llvm-cov show \
+              $BINARIES \
+              -instr-profile=coverage-$STD.profdata \
+              -format=html \
+              -output-dir=coverage/cxx$STD \
+              -ignore-filename-regex='^(?!.*\/include\/).*'
+          done
 
       # ---------------------------
-      # Coverage summary (include-only)
+      # Create combined UI
       # ---------------------------
-      - name: Coverage summary
+      - name: Create index
         run: |
-          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
-      
-          $LLVM_PREFIX/bin/llvm-cov report \
-            $BINARIES \
-            -instr-profile=coverage.profdata \
-            -path-equivalence="$GITHUB_WORKSPACE,$GITHUB_WORKSPACE" \
-            -ignore-filename-regex='^(?!.*\/include\/).*'
+          cat > coverage/index.html <<EOF
+          <html>
+          <head><title>Coverage Dashboard</title></head>
+          <body>
+          <h1>Coverage Reports</h1>
+          <ul>
+            <li><a href="cxx17/index.html">C++17 Coverage</a></li>
+            <li><a href="cxx20/index.html">C++20 Coverage</a></li>
+          </ul>
+          </body>
+          </html>
+          EOF
 
       # ---------------------------
-      # HTML report (include-only)
+      # Upload
       # ---------------------------
-      - name: Generate HTML report
-        run: |
-          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
-      
-          $LLVM_PREFIX/bin/llvm-cov show \
-            $BINARIES \
-            -instr-profile=coverage.profdata \
-            -format=html \
-            -output-dir=coverage-report \
-            -path-equivalence="$GITHUB_WORKSPACE,$GITHUB_WORKSPACE" \
-            -ignore-filename-regex='^(?!.*\/include\/).*'
-
-      # ---------------------------
-      # Export LCOV (include-only)
-      # ---------------------------
-      - name: Export LCOV
-        run: |
-          BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
-      
-          $LLVM_PREFIX/bin/llvm-cov export \
-            $BINARIES \
-            -instr-profile=coverage.profdata \
-            -format=lcov \
-            -path-equivalence="$GITHUB_WORKSPACE,$GITHUB_WORKSPACE" \
-            -ignore-filename-regex='^(?!.*\/include\/).*' \
-            > coverage.info
-
-      # ---------------------------
-      # Upload report
-      # ---------------------------
-      - name: Upload HTML report
+      - name: Upload coverage site
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: coverage-report
+          name: coverage-site
+          path: coverage/
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: coverage.info
-          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            coverage-17.profdata
+            coverage-20.profdata
+          use_oidc: true
