@@ -42,7 +42,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} \
             -DLINALG_ENABLE_TESTS=ON \
-            -DLINALG_ENABLE_COVERAGE=ON
+            -DLINALG_ENABLE_COVERAGE=ON \
+            -DCMAKE_C_COMPILER=$(brew --prefix llvm)/bin/clang \
+            -DCMAKE_CXX_COMPILER=$(brew --prefix llvm)/bin/clang++
 
       - name: Configure (Linux/Windows)
         if: runner.os != 'macOS'
@@ -85,7 +87,7 @@ jobs:
       - name: Debug profraw output
         if: runner.os == 'macOS'
         run: |
-          find .coverage -name "*.profraw" -print || true
+          find $COVERAGE_ROOT -name "*.profraw" -print || true
 
       # ---------------------------
       # Merge profraw → profdata
