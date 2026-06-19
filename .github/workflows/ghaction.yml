@@ -61,7 +61,7 @@ jobs:
         run: cmake --build build -j
 
       # ---------------------------
-      # Run tests (macOS coverage enabled)
+      # Run tests (macOS coverage)
       # ---------------------------
       - name: Run tests (macOS coverage)
         if: runner.os == 'macOS'
@@ -69,7 +69,7 @@ jobs:
           LLVM_PROFILE_FILE="coverage-${{ matrix.cxx_std }}-%p.profraw" \
           ctest --test-dir build --output-on-failure
 
-      - name: Run tests
+      - name: Run tests (non-macOS)
         if: runner.os != 'macOS'
         run: ctest --test-dir build --output-on-failure
 
@@ -80,7 +80,6 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p coverage_artifacts/bin
-          mkdir -p coverage_artifacts/lib
 
           ctest --test-dir build -N -V 2>/dev/null \
             | grep "Test command:" \
@@ -121,16 +120,16 @@ jobs:
           path: artifacts
 
       # ---------------------------
-      # Fix runtime library path
+      # Runtime fix
       # ---------------------------
       - name: Set DYLD_LIBRARY_PATH
         run: |
           echo "DYLD_LIBRARY_PATH=$(find artifacts -type d -name lib | paste -sd :)" >> $GITHUB_ENV
 
       # ---------------------------
-      # Generate coverage reports
+      # Generate coverage
       # ---------------------------
-      - name: Generate HTML + LCOV reports
+      - name: Generate reports (HTML + LCOV)
         run: |
           mkdir -p coverage/cxx17
           mkdir -p coverage/cxx20
@@ -142,24 +141,23 @@ jobs:
             BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
 
             if [ -z "$FILES" ]; then
-              echo "No profraw files for C++$STD"
+              echo "No profraw files found for C++$STD"
               continue
             fi
 
             $LLVM_PREFIX/bin/llvm-profdata merge -sparse $FILES -o coverage-$STD.profdata
 
             # ---------------------------
-            # HTML report (your dashboard)
+            # HTML dashboard
             # ---------------------------
             $LLVM_PREFIX/bin/llvm-cov show \
               $BINARIES \
               -instr-profile=coverage-$STD.profdata \
               -format=html \
-              -output-dir=coverage/cxx$STD \
-              -ignore-filename-regex='^(?!.*\/include\/).*'
+              -output-dir=coverage/cxx$STD
 
             # ---------------------------
-            # LCOV report (for Codecov)
+            # LCOV for Codecov (FIXED)
             # ---------------------------
             $LLVM_PREFIX/bin/llvm-cov export \
               $BINARIES \
@@ -168,7 +166,7 @@ jobs:
           done
 
       # ---------------------------
-      # Combined dashboard
+      # Dashboard index
       # ---------------------------
       - name: Create index page
         run: |
@@ -187,7 +185,7 @@ jobs:
           EOF
 
       # ---------------------------
-      # Upload HTML site
+      # Upload HTML
       # ---------------------------
       - name: Upload coverage site
         uses: actions/upload-artifact@v4
