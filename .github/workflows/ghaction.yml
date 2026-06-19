@@ -95,7 +95,8 @@ jobs:
       - name: Merge coverage
         if: runner.os == 'macOS'
         run: |
-          $LLVM_PREFIX/bin/llvm-profdata merge -sparse \
+          ls -lh $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}/*.profraw
+          $LLVM_PREFIX/bin/llvm-profdata merge -sparse -v \
             $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}/*.profraw \
             -o $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata
 
