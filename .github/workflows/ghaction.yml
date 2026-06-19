@@ -47,10 +47,7 @@ jobs:
       - name: Configure (Linux/Windows)
         if: runner.os != 'macOS'
         run: |
-          cmake -B build \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} \
-            -DLINALG_ENABLE_TESTS=ON
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} -DLINALG_ENABLE_TESTS=ON
 
       # ---------------------------
       # Build
