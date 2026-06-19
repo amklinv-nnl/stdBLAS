@@ -137,6 +137,15 @@ jobs:
           echo "Using binaries:"
           printf '%s\n' "${BINS[@]}"
 
+          echo "=== Checking binary/profile compatibility ==="
+          for bin in "${BINS[@]}"; do
+            $LLVM_PREFIX/bin/llvm-cov show "$bin" \
+              -instr-profile="$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata" \
+              >/dev/null 2>&1 \
+              && echo "OK: $bin" \
+              || echo "MISMATCH: $bin"
+          done
+
           $LLVM_PREFIX/bin/llvm-cov export \
             "${BINS[@]}" \
             -instr-profile="$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata" \
