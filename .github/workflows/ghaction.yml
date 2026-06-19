@@ -60,6 +60,12 @@ jobs:
         if: runner.os != 'macOS'
         run: ctest --test-dir build --output-on-failure
 
+      - name: Debug profraw files (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          echo "Looking for profraw files..."
+          find . -name "*.profraw" || true
+
       # ---------------------------
       # Collect minimal coverage artifacts
       # ---------------------------
