@@ -1,4 +1,4 @@
-name: Build + Coverage
+name: Unified C++ Coverage (17 + 20)
 
 on:
   pull_request:
@@ -10,197 +10,116 @@ permissions:
   id-token: write
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+  coverage:
+    runs-on: macos-latest
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         cxx_std: [17, 20]
 
     steps:
       - uses: actions/checkout@v4
 
       # ---------------------------
-      # macOS LLVM setup
+      # LLVM setup
       # ---------------------------
-      - name: Install LLVM (macOS)
-        if: runner.os == 'macOS'
-        run: brew install llvm
-
-      - name: Set LLVM env (macOS)
-        if: runner.os == 'macOS'
-        run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
-
-      # ---------------------------
-      # Configure
-      # ---------------------------
-      - name: Configure (macOS coverage)
-        if: runner.os == 'macOS'
-        run: >
-          cmake -B build
-          -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }}
-          -DCMAKE_CXX_COMPILER=clang++
-          -DLINALG_ENABLE_TESTS=ON
-          -DLINALG_ENABLE_COVERAGE=ON
-
-      - name: Configure (non-macOS)
-        if: runner.os != 'macOS'
-        run: >
-          cmake -B build
-          -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }}
-          -DLINALG_ENABLE_TESTS=ON
-
-      # ---------------------------
-      # Build
-      # ---------------------------
-      - name: Build
-        run: cmake --build build -j
-
-      # ---------------------------
-      # Run tests (macOS coverage)
-      # ---------------------------
-      - name: Run tests (macOS coverage)
-        if: runner.os == 'macOS'
-        run: |
-          LLVM_PROFILE_FILE="coverage-${{ matrix.cxx_std }}-%p.profraw" \
-          ctest --test-dir build --output-on-failure
-
-      - name: Run tests (non-macOS)
-        if: runner.os != 'macOS'
-        run: ctest --test-dir build --output-on-failure
-
-      # ---------------------------
-      # Collect artifacts (macOS only)
-      # ---------------------------
-      - name: Collect artifacts
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p coverage_artifacts/bin
-
-          ctest --test-dir build -N -V 2>/dev/null \
-            | grep "Test command:" \
-            | sed 's/.*Test command: //' \
-            | awk '{print $1}' > coverage_artifacts/test_binaries.txt
-
-          while read bin; do
-            if [ -f "$bin" ]; then
-              cp "$bin" coverage_artifacts/bin/
-            fi
-          done < coverage_artifacts/test_binaries.txt
-
-      - name: Upload build artifacts
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.cxx_std }}
-          path: |
-            **/*.profraw
-            coverage_artifacts/
-
-  coverage:
-    runs-on: macos-latest
-    needs: build
-
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Install LLVM
         run: brew install llvm
 
       - name: Set LLVM env
         run: echo "LLVM_PREFIX=$(brew --prefix llvm)" >> $GITHUB_ENV
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
       # ---------------------------
-      # Runtime fix
+      # Configure
       # ---------------------------
-      - name: Set DYLD_LIBRARY_PATH
+      - name: Configure
         run: |
-          echo "DYLD_LIBRARY_PATH=$(find artifacts -type d -name lib | paste -sd :)" >> $GITHUB_ENV
+          cmake -B build-${{ matrix.cxx_std }} \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }} \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DLINALG_ENABLE_TESTS=ON \
+            -DLINALG_ENABLE_COVERAGE=ON
 
       # ---------------------------
-      # Generate coverage
+      # Build
       # ---------------------------
-      - name: Generate reports (HTML + LCOV)
+      - name: Build
+        run: cmake --build build-${{ matrix.cxx_std }} -j
+
+      # ---------------------------
+      # Run tests (generate profraw)
+      # ---------------------------
+      - name: Run tests
         run: |
-          mkdir -p coverage/cxx17
-          mkdir -p coverage/cxx20
-
-          for STD in 17 20; do
-            echo "Processing C++$STD..."
-
-            FILES=$(find artifacts -name "coverage-$STD-*.profraw")
-            BINARIES=$(find artifacts -path "*/coverage_artifacts/bin/*" -type f)
-
-            if [ -z "$FILES" ]; then
-              echo "No profraw files found for C++$STD"
-              continue
-            fi
-
-            $LLVM_PREFIX/bin/llvm-profdata merge -sparse $FILES -o coverage-$STD.profdata
-
-            # ---------------------------
-            # HTML dashboard
-            # ---------------------------
-            $LLVM_PREFIX/bin/llvm-cov show \
-              $BINARIES \
-              -instr-profile=coverage-$STD.profdata \
-              -format=html \
-              -output-dir=coverage/cxx$STD
-
-            # ---------------------------
-            # LCOV for Codecov (FIXED)
-            # ---------------------------
-            $LLVM_PREFIX/bin/llvm-cov export \
-              $BINARIES \
-              -instr-profile=coverage-$STD.profdata \
-              --format=lcov > coverage-$STD.lcov
-          done
+          LLVM_PROFILE_FILE="cxx${{ matrix.cxx_std }}-%p.profraw" \
+          ctest --test-dir build-${{ matrix.cxx_std }} --output-on-failure
 
       # ---------------------------
-      # Dashboard index
+      # Merge profraw → profdata
       # ---------------------------
-      - name: Create index page
+      - name: Merge coverage data
         run: |
-          mkdir -p coverage
-          cat > coverage/index.html <<EOF
-          <html>
-          <head><title>Coverage Dashboard</title></head>
-          <body>
-          <h1>Coverage Reports</h1>
-          <ul>
-            <li><a href="cxx17/index.html">C++17 Coverage</a></li>
-            <li><a href="cxx20/index.html">C++20 Coverage</a></li>
-          </ul>
-          </body>
-          </html>
-          EOF
+          $LLVM_PREFIX/bin/llvm-profdata merge \
+            -sparse cxx${{ matrix.cxx_std }}-*.profraw \
+            -o cxx${{ matrix.cxx_std }}.profdata
 
       # ---------------------------
-      # Upload HTML
+      # Generate LCOV (Codecov input)
       # ---------------------------
-      - name: Upload coverage site
+      - name: Generate LCOV
+        run: |
+          BIN=$(find build-${{ matrix.cxx_std }} -type f -perm +111 | head -n 1)
+
+          $LLVM_PREFIX/bin/llvm-cov export \
+            $BIN \
+            -instr-profile=cxx${{ matrix.cxx_std }}.profdata \
+            --format=lcov > cxx${{ matrix.cxx_std }}.lcov
+
+      # ---------------------------
+      # Upload LCOV artifact (for Pages job)
+      # ---------------------------
+      - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-site
-          path: coverage/
+          name: coverage-${{ matrix.cxx_std }}
+          path: |
+            cxx${{ matrix.cxx_std }}.lcov
 
       # ---------------------------
-      # Upload to Codecov (FIXED)
+      # Codecov upload (UNIFIED INPUT)
       # ---------------------------
       - name: Upload to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: |
-            coverage-17.lcov
-            coverage-20.lcov
+          files: cxx${{ matrix.cxx_std }}.lcov
           use_oidc: true
           fail_ci_if_error: true
+
+
+  # -------------------------------------------------------
+  # OPTIONAL: merge artifacts for GitHub Pages dashboard
+  # -------------------------------------------------------
+  pages-data:
+    needs: coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download LCOV artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: lcov
+
+      - name: Prepare dashboard artifact
+        run: |
+          mkdir -p coverage-dashboard
+          cp lcov/**/cxx*.lcov coverage-dashboard/coverage.lcov
+
+      - name: Upload dashboard artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-dashboard
+          path: coverage-dashboard

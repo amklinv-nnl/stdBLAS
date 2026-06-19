@@ -1,0 +1,45 @@
+name: Coverage Dashboard (Pages)
+
+on:
+  workflow_run:
+    workflows: ["Unified C++ Coverage (17 + 20)"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-dashboard
+          path: coverage-dashboard
+
+      - name: Generate coverage JSON
+        run: |
+          python3 scripts/lcov_to_json.py coverage.lcov coverage-dashboard/coverage.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: coverage-dashboard
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
