@@ -149,8 +149,12 @@ jobs:
           $LLVM_PREFIX/bin/llvm-cov export \
             "${BINS[@]}" \
             -instr-profile="$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata" \
-            --format=lcov > \
-            "$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov"
+            --format=lcov \
+            --compilation-dir="$GITHUB_WORKSPACE" \
+            -ignore-filename-regex='(test|build|_deps)' \
+            > "$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov"
+
+          wc -l $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov
 
       # ---------------------------
       # Upload LCOV artifact
