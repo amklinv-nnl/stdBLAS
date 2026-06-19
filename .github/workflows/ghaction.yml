@@ -106,21 +106,21 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          cp build/coverage_binaries.txt $COVERAGE_ROOT/binaries.txt
+          cp build/coverage_binaries.txt $COVERAGE_ROOT/binaries-${{ matrix.cxx_std }}.txt
 
       - name: Validate binaries
         if: runner.os == 'macOS'
         shell: bash
         run: |
           echo "Binaries used for coverage:"
-          cat $COVERAGE_ROOT/binaries.txt
+          cat $COVERAGE_ROOT/binaries-${{ matrix.cxx_std }}.txt
       
           while read bin; do
             if [ ! -f "$bin" ]; then
               echo "Missing binary: $bin"
               exit 1
             fi
-          done < $COVERAGE_ROOT/binaries.txt
+          done < $COVERAGE_ROOT/binaries-${{ matrix.cxx_std }}.txt
       
       # ---------------------------
       # Generate LCOV (CORRECT)
@@ -132,7 +132,7 @@ jobs:
           BINS=()
           while IFS= read -r line; do
             [ -n "$line" ] && BINS+=("$line")
-          done < "$COVERAGE_ROOT/binaries.txt"
+          done < "$COVERAGE_ROOT/binaries-${{ matrix.cxx_std }}.txt"
 
           echo "Using binaries:"
           printf '%s\n' "${BINS[@]}"
