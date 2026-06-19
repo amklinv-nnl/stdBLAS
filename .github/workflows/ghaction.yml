@@ -100,12 +100,30 @@ jobs:
       # ---------------------------
       # Select binaries (NO assumptions)
       # ---------------------------
-      - name: Locate binaries
+      - name: Locate test binaries (correct way)
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          find build -type f -perm +111 > $COVERAGE_ROOT/binaries.txt
+          ctest --test-dir build -N -V \
+            | grep "Test command:" \
+            | sed 's/.*Test command: //' \
+            | awk '{print $1}' \
+            | sort -u > $COVERAGE_ROOT/binaries.txt
 
+      - name: Validate binaries
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "Binaries used for coverage:"
+          cat $COVERAGE_ROOT/binaries.txt
+      
+          while read bin; do
+            if [ ! -f "$bin" ]; then
+              echo "Missing binary: $bin"
+              exit 1
+            fi
+          done < $COVERAGE_ROOT/binaries.txt
+      
       # ---------------------------
       # Generate LCOV (Codecov)
       # ---------------------------
@@ -113,10 +131,10 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          BIN=$(head -n 1 $COVERAGE_ROOT/binaries.txt)
+          BINS=$(cat $COVERAGE_ROOT/binaries.txt)
 
           $LLVM_PREFIX/bin/llvm-cov export \
-            $BIN \
+            $BINS \
             -instr-profile=$COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.profdata \
             --format=lcov > \
             $COVERAGE_ROOT/cxx${{ matrix.cxx_std }}.lcov
