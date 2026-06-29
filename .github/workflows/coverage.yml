@@ -1,0 +1,87 @@
+name: Coverage
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        std: [cxx17, cxx20]
+
+    env:
+      COVERAGE_ROOT: ${{ github.workspace }}/.coverage
+      LLVM_PREFIX: /usr
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm clang
+
+      - name: Configure
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="--coverage -O0 -g"
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Run tests (gtest)
+        working-directory: build
+        run: |
+          ctest --output-on-failure
+
+      - name: Collect profraw
+        working-directory: build
+        run: |
+          mkdir -p $COVERAGE_ROOT/${{ matrix.std }}
+
+          find . -name "*.profraw" -exec cp {} $COVERAGE_ROOT/${{ matrix.std }}/ \;
+
+      - name: Merge profdata
+        run: |
+          llvm-profdata merge -sparse \
+            $COVERAGE_ROOT/${{ matrix.std }}/*.profraw \
+            -o $COVERAGE_ROOT/${{ matrix.std }}.profdata
+
+      - name: Build binaries list
+        working-directory: build
+        run: |
+          find tests/native -type f -executable > $COVERAGE_ROOT/binaries.txt
+
+      - name: Export per-binary LCOV
+        working-directory: build
+        run: |
+          : > $COVERAGE_ROOT/${{ matrix.std }}.lcov
+
+          while read exe; do
+            llvm-cov export "$exe" \
+              -instr-profile=$COVERAGE_ROOT/${{ matrix.std }}.profdata \
+              --format=lcov >> $COVERAGE_ROOT/${{ matrix.std }}.lcov
+
+            echo >> $COVERAGE_ROOT/${{ matrix.std }}.lcov
+          done < $COVERAGE_ROOT/binaries.txt
+
+      - name: Normalize paths (CRITICAL)
+        run: |
+          sed -i "s|$GITHUB_WORKSPACE/||g" \
+            $COVERAGE_ROOT/${{ matrix.std }}.lcov
+
+      - name: Remove external dependencies
+        run: |
+          grep -v "_deps" $COVERAGE_ROOT/${{ matrix.std }}.lcov > tmp.lcov
+          mv tmp.lcov $COVERAGE_ROOT/${{ matrix.std }}.lcov
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ${{ env.COVERAGE_ROOT }}/${{ matrix.std }}.lcov
+          flags: ${{ matrix.std }}
+          name: stdBLAS-${{ matrix.std }}
