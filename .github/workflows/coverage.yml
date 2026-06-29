@@ -48,7 +48,7 @@ jobs:
         run: |
           mkdir -p $COVERAGE_ROOT/cxx${{ matrix.std }}
 
-          find . -name "*.profraw" -exec cp {} $COVERAGE_ROOT/${{ matrix.std }}/ \;
+          find . -name "*.profraw" -exec cp {} $COVERAGE_ROOT/cxx${{ matrix.std }}/ \;
 
       - name: Merge profdata
         run: |
