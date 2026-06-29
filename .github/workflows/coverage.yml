@@ -90,3 +90,4 @@ jobs:
           files: ${{ env.COVERAGE_ROOT }}/cxx${{ matrix.std }}.lcov
           flags: cxx${{ matrix.std }}
           name: stdBLAS-${{ matrix.std }}
+          token: ${{ secrets.CODECOV_TOKEN }}
